@@ -9,6 +9,8 @@ on:
 jobs:
   release:
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
     
     strategy:
       matrix:
@@ -31,6 +33,6 @@ jobs:
       - name: Build and Release
         env:
           # Le robot utilise la clé secrète qu'on a configurée
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           npm run electron:build
