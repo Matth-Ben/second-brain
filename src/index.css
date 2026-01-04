@@ -3,8 +3,54 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --bg-primary: #ffffff;
+    --bg-surface: #f3f4f6;
+    /* gray-100 */
+    --bg-hover: #e5e7eb;
+    /* gray-200 */
+    --border-color: #e5e7eb;
+    --text-primary: #1f2937;
+    /* gray-800 */
+    --text-secondary: #6b7280;
+    /* gray-500 */
+    /* Code Block Colors - Light Mode (One Light inspired) */
+    --bg-code: #fafafa;
+    --text-code: #383a42;
+    --code-comment: #a0a1a7;
+    --code-keyword: #a626a4;
+    --code-string: #50a14f;
+    --code-function: #4078f2;
+    --code-number: #986801;
+    --code-tag: #e45649;
+    --code-constant: #986801;
+  }
+
+  .dark {
+    --bg-primary: #0a0a0a;
+    --bg-surface: #141414;
+    --bg-hover: #1a1a1a;
+    --border-color: #262626;
+    --text-primary: #ffffff;
+    --text-secondary: #9ca3af;
+    /* gray-400 */
+
+    /* Code Block Colors - Dark Mode (One Dark inspired) */
+    --bg-code: #1a1a1a;
+    --text-code: #abb2bf;
+    --code-comment: #5c6370;
+    --code-keyword: #c678dd;
+    --code-string: #98c379;
+    --code-function: #61afef;
+    --code-number: #d19a66;
+    --code-tag: #e06c75;
+    --code-constant: #e5c07b;
+  }
+
   body {
-    @apply bg-dark-bg text-white antialiased;
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    @apply antialiased transition-colors duration-300;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   }
 }
@@ -15,11 +61,11 @@
   }
 
   .btn-secondary {
-    @apply bg-dark-surface hover:bg-dark-hover text-white font-medium px-4 py-2 rounded-lg border border-dark-border transition-colors;
+    @apply bg-dark-surface hover:bg-dark-hover text-dark-text font-medium px-4 py-2 rounded-lg border border-dark-border transition-colors;
   }
 
   .input-field {
-    @apply bg-dark-surface border border-dark-border rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all;
+    @apply bg-dark-surface border border-dark-border rounded-lg px-4 py-2 text-dark-text placeholder-dark-subtext focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all;
   }
 
   .card {
@@ -44,11 +90,9 @@
 
 /* Custom Editor Styles */
 .ProseMirror pre {
-  background-color: #1a1a1a !important;
-  /* Neutral dark background */
+  background-color: var(--bg-code) !important;
   border-radius: 0.5rem;
-  color: #abb2bf;
-  /* Neutral text base color */
+  color: var(--text-code);
   padding: 0.75rem 1rem;
 }
 
@@ -60,19 +104,20 @@
 /* Inline code specifically */
 .ProseMirror p code {
   color: #fb923c;
+  /* Keep orange for inline code or make it themeable if desired, but user asked for code blocks mostly */
 }
 
-/* Syntax Highlighting (One Dark inspired) */
+/* Syntax Highlighting */
 .hljs-comment,
 .hljs-quote {
-  color: #5c6370;
+  color: var(--code-comment);
   font-style: italic;
 }
 
 .hljs-doctag,
 .hljs-keyword,
 .hljs-formula {
-  color: #c678dd;
+  color: var(--code-keyword);
 }
 
 .hljs-section,
@@ -80,11 +125,12 @@
 .hljs-selector-tag,
 .hljs-deletion,
 .hljs-subst {
-  color: #e06c75;
+  color: var(--code-tag);
 }
 
 .hljs-literal {
-  color: #56b6c2;
+  color: var(--code-keyword);
+  /* Reuse keyword color or define literal if needed */
 }
 
 .hljs-string,
@@ -92,12 +138,13 @@
 .hljs-addition,
 .hljs-attribute,
 .hljs-meta-string {
-  color: #98c379;
+  color: var(--code-string);
 }
 
 .hljs-built_in,
 .hljs-class .hljs-title {
-  color: #e5c07b;
+  color: var(--code-constant);
+  /* Using constant color for built-ins */
 }
 
 .hljs-attr,
@@ -108,7 +155,8 @@
 .hljs-selector-attr,
 .hljs-selector-pseudo,
 .hljs-number {
-  color: #d19a66;
+  color: var(--code-number);
+  /* Grouping numbers and types/vars for simplicity or define specific vars */
 }
 
 .hljs-symbol,
@@ -117,7 +165,7 @@
 .hljs-meta,
 .hljs-selector-id,
 .hljs-title {
-  color: #61afef;
+  color: var(--code-function);
 }
 
 .hljs-emphasis {

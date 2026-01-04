@@ -62,7 +62,7 @@ export default function UpdateNotification() {
                 {updateState === 'checking' && (
                     <div className="flex items-center gap-3">
                         <RefreshCw size={20} className="text-blue-500 animate-spin" />
-                        <p className="text-sm text-gray-300">Recherche de mises à jour...</p>
+                        <p className="text-sm text-dark-subtext">Recherche de mises à jour...</p>
                     </div>
                 )}
 
@@ -71,13 +71,13 @@ export default function UpdateNotification() {
                         <div className="flex items-center gap-3">
                             <Download size={20} className="text-blue-500" />
                             <div className="flex-1">
-                                <p className="text-sm font-medium text-white">Mise à jour disponible</p>
-                                <p className="text-xs text-gray-400">Version {updateInfo?.version}</p>
+                                <p className="text-sm font-medium text-dark-text">Mise à jour disponible</p>
+                                <p className="text-xs text-dark-subtext">Version {updateInfo?.version}</p>
                             </div>
                         </div>
 
                         <div className="space-y-1">
-                            <div className="flex justify-between text-xs text-gray-400">
+                            <div className="flex justify-between text-xs text-dark-subtext">
                                 <span>Téléchargement...</span>
                                 <span>{downloadProgress}%</span>
                             </div>
@@ -98,8 +98,8 @@ export default function UpdateNotification() {
                                 <RefreshCw size={20} className="text-green-500" />
                             </div>
                             <div className="flex-1">
-                                <p className="text-sm font-medium text-white">Mise à jour prête !</p>
-                                <p className="text-xs text-gray-400">Version {updateInfo?.version}</p>
+                                <p className="text-sm font-medium text-dark-text">Mise à jour prête !</p>
+                                <p className="text-xs text-dark-subtext">Version {updateInfo?.version}</p>
                             </div>
                         </div>
 
@@ -118,7 +118,7 @@ export default function UpdateNotification() {
                             <span className="text-red-500 font-bold">!</span>
                         </div>
                         <div className="flex-1">
-                            <p className="text-sm font-medium text-white">Erreur de mise à jour</p>
+                            <p className="text-sm font-medium text-dark-text">Erreur de mise à jour</p>
                             <p className="text-xs text-red-400">{updateInfo?.error}</p>
                         </div>
                     </div>

@@ -146,7 +146,7 @@ export default function Settings({ session }) {
                             onClick={() => setActiveTab(tab.id)}
                             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${activeTab === tab.id
                                 ? 'bg-blue-600 text-white'
-                                : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                                : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'
                                 }`}
                         >
                             <tab.icon size={18} />
@@ -163,27 +163,27 @@ export default function Settings({ session }) {
                     {/* APPARENCE */}
                     {activeTab === 'appearance' && (
                         <section className="space-y-6 animate-fade-in">
-                            <h3 className="text-2xl font-bold text-white mb-6">Appearance</h3>
+                            <h3 className="text-2xl font-bold text-dark-text mb-6">Appearance</h3>
 
                             <div className="bg-dark-surface p-6 rounded-xl border border-dark-border">
-                                <h4 className="font-medium text-white mb-4">Theme Preference</h4>
+                                <h4 className="font-medium text-dark-text mb-4">Theme Preference</h4>
                                 <div className="grid grid-cols-3 gap-4">
                                     <button
                                         onClick={() => setTheme('light')}
                                         className={`p-4 rounded-lg border-2 flex flex-col items-center gap-2 transition-all ${theme === 'light'
-                                            ? 'border-blue-500 bg-blue-500/10 text-white'
-                                            : 'border-dark-border hover:border-gray-500 text-gray-400'
+                                            ? 'border-blue-500 bg-blue-500/10 text-dark-text'
+                                            : 'border-dark-border hover:border-dark-subtext text-dark-subtext hover:text-dark-text hover:bg-dark-hover'
                                             }`}
                                     >
-                                        <div className="w-full h-20 bg-gray-200 rounded mb-2 opacity-50"></div>
+                                        <div className="w-full h-20 bg-gray-200 rounded mb-2 opacity-50 border border-gray-300"></div>
                                         <span>Light</span>
                                     </button>
 
                                     <button
                                         onClick={() => setTheme('dark')}
                                         className={`p-4 rounded-lg border-2 flex flex-col items-center gap-2 transition-all ${theme === 'dark'
-                                            ? 'border-blue-500 bg-blue-500/10 text-white'
-                                            : 'border-dark-border hover:border-gray-500 text-gray-400'
+                                            ? 'border-blue-500 bg-blue-500/10 text-dark-text'
+                                            : 'border-dark-border hover:border-dark-subtext text-dark-subtext hover:text-dark-text hover:bg-dark-hover'
                                             }`}
                                     >
                                         <div className="w-full h-20 bg-[#0a0a0a] rounded mb-2 border border-gray-700"></div>
@@ -193,11 +193,11 @@ export default function Settings({ session }) {
                                     <button
                                         onClick={() => setTheme('system')}
                                         className={`p-4 rounded-lg border-2 flex flex-col items-center gap-2 transition-all ${theme === 'system'
-                                            ? 'border-blue-500 bg-blue-500/10 text-white'
-                                            : 'border-dark-border hover:border-gray-500 text-gray-400'
+                                            ? 'border-blue-500 bg-blue-500/10 text-dark-text'
+                                            : 'border-dark-border hover:border-dark-subtext text-dark-subtext hover:text-dark-text hover:bg-dark-hover'
                                             }`}
                                     >
-                                        <div className="w-full h-20 bg-gradient-to-r from-gray-200 to-[#0a0a0a] rounded mb-2 border border-gray-700"></div>
+                                        <div className="w-full h-20 bg-gradient-to-r from-gray-200 to-[#0a0a0a] rounded mb-2 border border-gray-400"></div>
                                         <span>System</span>
                                     </button>
                                 </div>
@@ -208,29 +208,29 @@ export default function Settings({ session }) {
                     {/* COMPTE */}
                     {activeTab === 'account' && (
                         <section className="space-y-6 animate-fade-in">
-                            <h3 className="text-2xl font-bold text-white mb-6">Account</h3>
+                            <h3 className="text-2xl font-bold text-dark-text mb-6">Account</h3>
 
                             <div className="bg-dark-surface p-6 rounded-xl border border-dark-border">
                                 <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-2xl font-bold">
+                                    <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center text-2xl font-bold text-white">
                                         {session?.user.email[0].toUpperCase()}
                                     </div>
                                     <div>
-                                        <h4 className="text-lg font-medium text-white">Logged in as</h4>
-                                        <p className="text-gray-400">{session?.user.email}</p>
+                                        <h4 className="text-lg font-medium text-dark-text">Logged in as</h4>
+                                        <p className="text-dark-subtext">{session?.user.email}</p>
                                     </div>
                                 </div>
 
                                 {/* Password Change Section */}
                                 <div className="mb-6 pt-6 border-t border-dark-border">
-                                    <h5 className="font-medium text-white mb-4">Change Password</h5>
+                                    <h5 className="font-medium text-dark-text mb-4">Change Password</h5>
                                     <form onSubmit={handlePasswordChange} className="space-y-3">
                                         <input
                                             type="password"
                                             placeholder="New Password"
                                             value={newPassword}
                                             onChange={(e) => setNewPassword(e.target.value)}
-                                            className={`w-full bg-dark-bg border rounded-lg px-3 py-2 text-white focus:outline-none transition-colors ${!confirmPassword
+                                            className={`w-full bg-dark-bg border rounded-lg px-3 py-2 text-dark-text focus:outline-none transition-colors ${!confirmPassword
                                                 ? 'border-dark-border focus:border-blue-500'
                                                 : newPassword === confirmPassword
                                                     ? 'border-green-500 focus:border-green-500'
@@ -243,7 +243,7 @@ export default function Settings({ session }) {
                                             placeholder="Confirm New Password"
                                             value={confirmPassword}
                                             onChange={(e) => setConfirmPassword(e.target.value)}
-                                            className={`w-full bg-dark-bg border rounded-lg px-3 py-2 text-white focus:outline-none transition-colors ${!confirmPassword
+                                            className={`w-full bg-dark-bg border rounded-lg px-3 py-2 text-dark-text focus:outline-none transition-colors ${!confirmPassword
                                                 ? 'border-dark-border focus:border-blue-500'
                                                 : newPassword === confirmPassword
                                                     ? 'border-green-500 focus:border-green-500'
@@ -263,7 +263,7 @@ export default function Settings({ session }) {
 
                                 <button
                                     onClick={handleLogout}
-                                    className="flex items-center gap-2 px-4 py-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors w-full"
+                                    className="flex items-center gap-2 px-4 py-2 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-colors w-full"
                                 >
                                     <LogOut size={18} />
                                     Log out
@@ -275,18 +275,18 @@ export default function Settings({ session }) {
                     {/* DONNÉES */}
                     {activeTab === 'data' && (
                         <section className="space-y-6 animate-fade-in">
-                            <h3 className="text-2xl font-bold text-white mb-6">Data Management</h3>
+                            <h3 className="text-2xl font-bold text-dark-text mb-6">Data Management</h3>
 
                             <div className="bg-dark-surface p-6 rounded-xl border border-dark-border">
-                                <h4 className="font-medium text-white mb-2">Export Data</h4>
-                                <p className="text-gray-400 text-sm mb-6">
+                                <h4 className="font-medium text-dark-text mb-2">Export Data</h4>
+                                <p className="text-dark-subtext text-sm mb-6">
                                     Download a JSON backup of all your tasks and notes.
                                 </p>
 
                                 <button
                                     onClick={handleExportData}
                                     disabled={isExporting}
-                                    className="flex items-center gap-2 px-4 py-2 bg-dark-hover hover:bg-gray-700 text-white rounded-lg transition-colors border border-gray-600"
+                                    className="flex items-center gap-2 px-4 py-2 bg-dark-hover hover:bg-gray-600 text-dark-text rounded-lg transition-colors border border-dark-border"
                                 >
                                     {isExporting ? (
                                         <RefreshCw size={18} className="animate-spin" />
@@ -302,23 +302,23 @@ export default function Settings({ session }) {
                     {/* À PROPOS */}
                     {activeTab === 'about' && (
                         <section className="space-y-6 animate-fade-in">
-                            <h3 className="text-2xl font-bold text-white mb-6">About</h3>
+                            <h3 className="text-2xl font-bold text-dark-text mb-6">About</h3>
 
                             <div className="bg-dark-surface p-6 rounded-xl border border-dark-border text-center">
                                 <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg">
                                     <Database size={32} className="text-white" />
                                 </div>
-                                <h4 className="text-xl font-bold text-white">Second Brain</h4>
-                                <p className="text-gray-400 mb-6">v{appVersion}</p>
+                                <h4 className="text-xl font-bold text-dark-text">Second Brain</h4>
+                                <p className="text-dark-subtext mb-6">v{appVersion}</p>
 
                                 <button
                                     onClick={checkForUpdates}
-                                    className="text-sm text-blue-400 hover:text-blue-300 underline"
+                                    className="text-sm text-blue-500 hover:text-blue-400 underline"
                                 >
                                     Check for updates
                                 </button>
 
-                                <p className="text-xs text-gray-500 mt-8">
+                                <p className="text-xs text-dark-subtext mt-8">
                                     Built with Electron, React & Supabase.
                                 </p>
                             </div>

@@ -11,10 +11,12 @@ export default {
         extend: {
             colors: {
                 dark: {
-                    bg: '#0a0a0a',
-                    surface: '#141414',
-                    border: '#262626',
-                    hover: '#1a1a1a',
+                    bg: 'var(--bg-primary)',
+                    surface: 'var(--bg-surface)',
+                    border: 'var(--border-color)',
+                    hover: 'var(--bg-hover)',
+                    text: 'var(--text-primary)',
+                    subtext: 'var(--text-secondary)',
                 }
             }
         },

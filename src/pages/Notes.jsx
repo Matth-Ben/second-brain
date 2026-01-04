@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
-import { Plus, FileText, Trash2, Star } from 'lucide-react'
+import { Plus, FileText, Trash2, Star, ChevronLeft } from 'lucide-react'
 import Editor from '../components/Editor'
 
 const extractImageUrls = (html) => {
@@ -215,7 +215,10 @@ export default function Notes({ session }) {
 
     return (
         <div className="flex h-full">
-            <div className="w-64 border-r border-dark-border flex flex-col">
+            <div className={`
+                w-full md:w-64 border-r border-dark-border flex flex-col 
+                ${selectedNote ? 'hidden md:flex' : 'flex'}
+            `}>
                 <div className="px-6 flex items-center h-20 text-xl font-bold border-b border-dark-border">
                     Mes notes
                 </div>
@@ -239,7 +242,9 @@ export default function Notes({ session }) {
                                     {note.is_favorite && (
                                         <Star size={14} className="text-yellow-400 fill-current shrink-0" />
                                     )}
-                                    <h3 className="font-medium truncate">{note.title}</h3>
+                                    <h3 className={`font-medium truncate ${selectedNote?.id === note.id ? 'text-white' : 'text-dark-text'}`}>
+                                        {note.title}
+                                    </h3>
                                 </div>
                             </div>
                         ))
@@ -253,23 +258,29 @@ export default function Notes({ session }) {
                 </div>
             </div>
 
-            <div className="flex-1 flex flex-col">
+            <div className={`flex-1 flex flex-col ${!selectedNote ? 'hidden md:flex' : 'flex'}`}>
                 {selectedNote ? (
                     <>
-                        <div className="flex items-center h-20 px-6 border-b border-dark-border">
+                        <div className="flex items-center h-20 px-4 md:px-6 border-b border-dark-border gap-2">
+                            <button
+                                onClick={() => setSelectedNote(null)}
+                                className="md:hidden p-2 text-dark-subtext hover:text-dark-text rounded-lg"
+                            >
+                                <ChevronLeft size={24} />
+                            </button>
                             <input
                                 type="text"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 onBlur={updateNote}
-                                className="flex-1 text-2xl font-bold bg-transparent border-none outline-none text-white placeholder-gray-500 min-w-0 mr-4"
+                                className="flex-1 text-2xl font-bold bg-transparent border-none outline-none text-dark-text placeholder-dark-subtext min-w-0 mr-4"
                                 placeholder="Note title..."
                             />
                             <button
                                 onClick={toggleFavorite}
                                 className={`p-2 rounded-lg transition-colors mr-2 ${selectedNote.is_favorite
                                     ? 'text-yellow-400 hover:bg-yellow-400/10'
-                                    : 'text-gray-500 hover:text-yellow-400 hover:bg-yellow-400/10'
+                                    : 'text-dark-subtext hover:text-yellow-400 hover:bg-yellow-400/10'
                                     }`}
                                 title={selectedNote.is_favorite ? "Remove from favorites" : "Add to favorites"}
                             >
@@ -277,7 +288,7 @@ export default function Notes({ session }) {
                             </button>
                             <button
                                 onClick={handleDeleteClick}
-                                className="p-2 text-red-400 hover:text-red-300 hover:bg-red-500/10 rounded-lg transition-colors"
+                                className="p-2 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-colors"
                                 title="Delete note"
                             >
                                 <Trash2 size={20} />
@@ -297,7 +308,7 @@ export default function Notes({ session }) {
                         </div>
                     </>
                 ) : (
-                    <div className="flex-1 flex items-center justify-center text-gray-500">
+                    <div className="flex-1 flex items-center justify-center text-dark-subtext">
                         <div className="text-center">
                             <FileText size={64} className="mx-auto mb-4 opacity-50" />
                             <p>Select a note or create a new one</p>
@@ -310,9 +321,9 @@ export default function Notes({ session }) {
             {showDeleteModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
                     <div className="bg-dark-surface border border-dark-border p-6 rounded-xl shadow-2xl max-w-sm w-full mx-4">
-                        <h3 className="text-xl font-bold text-white mb-4">Delete Note?</h3>
-                        <p className="text-gray-400 mb-6">
-                            Are you sure you want to delete <span className="text-white font-medium">"{selectedNote?.title}"</span>?
+                        <h3 className="text-xl font-bold text-dark-text mb-4">Delete Note?</h3>
+                        <p className="text-dark-subtext mb-6">
+                            Are you sure you want to delete <span className="text-dark-text font-medium">"{selectedNote?.title}"</span>?
                             This action cannot be undone.
                         </p>
                         <div className="flex justify-end gap-3">

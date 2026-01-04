@@ -156,8 +156,8 @@ export default function Dashboard({ session }) {
     return (
         <div className="max-w-4xl mx-auto p-8">
             <div className="mb-8">
-                <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-                <p className="text-gray-400">Manage your tasks and stay productive</p>
+                <h1 className="text-3xl font-bold mb-2 text-dark-text">Dashboard</h1>
+                <p className="text-dark-subtext">Manage your tasks and stay productive</p>
             </div>
 
             <div className="card mb-6">
@@ -167,12 +167,12 @@ export default function Dashboard({ session }) {
                         value={newTaskTitle}
                         onChange={(e) => setNewTaskTitle(e.target.value)}
                         placeholder="Add a new task..."
-                        className="input-field flex-1"
+                        className="input-field flex-1 text-dark-text placeholder-dark-subtext"
                     />
                     <select
                         value={newTaskCategory}
                         onChange={(e) => setNewTaskCategory(e.target.value)}
-                        className="input-field"
+                        className="input-field text-dark-text"
                     >
                         <option value="work">Work</option>
                         <option value="personal">Personal</option>
@@ -181,7 +181,7 @@ export default function Dashboard({ session }) {
                         type="date"
                         value={newTaskDate}
                         onChange={(e) => setNewTaskDate(e.target.value)}
-                        className="input-field"
+                        className="input-field text-dark-text"
                     />
                     <button
                         type="submit"
@@ -202,11 +202,11 @@ export default function Dashboard({ session }) {
 
             {tasks.length === 0 ? (
                 <div className="card text-center py-12">
-                    <div className="text-gray-500 mb-2">
+                    <div className="text-dark-subtext mb-2">
                         <Circle size={48} className="mx-auto mb-4 opacity-50" />
                     </div>
-                    <h3 className="text-xl font-semibold mb-2">No tasks yet</h3>
-                    <p className="text-gray-400">
+                    <h3 className="text-xl font-semibold mb-2 text-dark-text">No tasks yet</h3>
+                    <p className="text-dark-subtext">
                         Add your first task to get started with your productivity journey
                     </p>
                 </div>
@@ -222,15 +222,15 @@ export default function Dashboard({ session }) {
                                 {task.is_done ? (
                                     <CheckCircle2 size={24} className="text-green-500" />
                                 ) : (
-                                    <Circle size={24} className="text-gray-500" />
+                                    <Circle size={24} className="text-dark-subtext" />
                                 )}
                             </button>
 
                             <div className="flex-1">
                                 <p
                                     className={`font-medium ${task.is_done
-                                        ? 'line-through text-gray-500'
-                                        : 'text-white'
+                                        ? 'line-through text-dark-subtext'
+                                        : 'text-dark-text'
                                         }`}
                                 >
                                     {task.title}
@@ -281,14 +281,14 @@ export default function Dashboard({ session }) {
                                             e.stopPropagation()
                                             setActiveMenu(activeMenu === task.id ? null : task.id)
                                         }}
-                                        className="p-1 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors"
+                                        className="p-1 hover:bg-dark-hover rounded-full text-dark-subtext hover:text-dark-text transition-colors"
                                     >
                                         <MoreVertical size={16} />
                                     </button>
 
                                     {activeMenu === task.id && (
                                         <div
-                                            className="absolute right-0 top-full mt-1 w-48 bg-[#1E1E1E] border border-gray-800 rounded-lg shadow-xl z-10 overflow-hidden"
+                                            className="absolute right-0 top-full mt-1 w-48 bg-dark-surface border border-dark-border rounded-lg shadow-xl z-10 overflow-hidden"
                                             onClick={(e) => e.stopPropagation()}
                                         >
                                             {task.due_date && (
@@ -297,7 +297,7 @@ export default function Dashboard({ session }) {
                                                         href={generateGoogleCalendarUrl(task)}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                                                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-dark-text hover:bg-dark-hover hover:text-dark-text transition-colors"
                                                         onClick={() => setActiveMenu(null)}
                                                     >
                                                         <ExternalLink size={14} />
@@ -308,12 +308,12 @@ export default function Dashboard({ session }) {
                                                             downloadIcsFile(task)
                                                             setActiveMenu(null)
                                                         }}
-                                                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                                                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-dark-text hover:bg-dark-hover hover:text-dark-text transition-colors"
                                                     >
                                                         <Download size={14} />
                                                         Download .ics
                                                     </button>
-                                                    <div className="h-px bg-gray-800 my-1"></div>
+                                                    <div className="h-px bg-dark-border my-1"></div>
                                                 </>
                                             )}
 
@@ -322,7 +322,7 @@ export default function Dashboard({ session }) {
                                                     deleteTask(task.id)
                                                     setActiveMenu(null)
                                                 }}
-                                                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                                                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-colors"
                                             >
                                                 <Trash2 size={14} />
                                                 Delete Task

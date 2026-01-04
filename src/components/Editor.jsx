@@ -32,7 +32,7 @@ const MenuBar = ({ editor, onImageUpload, isUploading }) => {
             <button
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 disabled={!editor.can().chain().focus().toggleBold().run()}
-                className={`p-1.5 rounded transition-colors ${editor.isActive('bold') ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                className={`p-1.5 rounded transition-colors ${editor.isActive('bold') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Bold"
             >
                 <Bold size={16} />
@@ -40,7 +40,7 @@ const MenuBar = ({ editor, onImageUpload, isUploading }) => {
             <button
                 onClick={() => editor.chain().focus().toggleItalic().run()}
                 disabled={!editor.can().chain().focus().toggleItalic().run()}
-                className={`p-1.5 rounded transition-colors ${editor.isActive('italic') ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                className={`p-1.5 rounded transition-colors ${editor.isActive('italic') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Italic"
             >
                 <Italic size={16} />
@@ -48,58 +48,58 @@ const MenuBar = ({ editor, onImageUpload, isUploading }) => {
             <button
                 onClick={() => editor.chain().focus().toggleStrike().run()}
                 disabled={!editor.can().chain().focus().toggleStrike().run()}
-                className={`p-1.5 rounded transition-colors ${editor.isActive('strike') ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                className={`p-1.5 rounded transition-colors ${editor.isActive('strike') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Strike"
             >
                 <Strikethrough size={16} />
             </button>
 
-            <div className="w-px bg-gray-700 mx-1 self-stretch"></div>
+            <div className="w-px bg-dark-border mx-1 self-stretch"></div>
 
             <button
                 onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-                className={`p-1.5 rounded transition-colors ${editor.isActive('heading', { level: 1 }) ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                className={`p-1.5 rounded transition-colors ${editor.isActive('heading', { level: 1 }) ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Heading 1"
             >
                 <Heading1 size={16} />
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-                className={`p-1.5 rounded transition-colors ${editor.isActive('heading', { level: 2 }) ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                className={`p-1.5 rounded transition-colors ${editor.isActive('heading', { level: 2 }) ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Heading 2"
             >
                 <Heading2 size={16} />
             </button>
 
-            <div className="w-px bg-gray-700 mx-1 self-stretch"></div>
+            <div className="w-px bg-dark-border mx-1 self-stretch"></div>
 
             <button
                 onClick={() => editor.chain().focus().toggleBulletList().run()}
-                className={`p-1.5 rounded transition-colors ${editor.isActive('bulletList') ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                className={`p-1.5 rounded transition-colors ${editor.isActive('bulletList') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Bullet List"
             >
                 <List size={16} />
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                className={`p-1.5 rounded transition-colors ${editor.isActive('orderedList') ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                className={`p-1.5 rounded transition-colors ${editor.isActive('orderedList') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Ordered List"
             >
                 <ListOrdered size={16} />
             </button>
 
-            <div className="w-px bg-gray-700 mx-1 self-stretch"></div>
+            <div className="w-px bg-dark-border mx-1 self-stretch"></div>
 
             <button
                 onClick={() => editor.chain().focus().toggleBlockquote().run()}
-                className={`p-1.5 rounded transition-colors ${editor.isActive('blockquote') ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                className={`p-1.5 rounded transition-colors ${editor.isActive('blockquote') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Quote"
             >
                 <Quote size={16} />
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-                className={`p-1.5 rounded transition-colors ${editor.isActive('codeBlock') ? 'bg-blue-600 text-white' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                className={`p-1.5 rounded transition-colors ${editor.isActive('codeBlock') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Code Block"
             >
                 <Code size={16} />
@@ -107,11 +107,11 @@ const MenuBar = ({ editor, onImageUpload, isUploading }) => {
             <button
                 onClick={onImageUpload}
                 disabled={isUploading}
-                className={`p-1.5 rounded transition-colors ${isUploading ? 'text-gray-600 cursor-not-allowed' : 'text-gray-400 hover:bg-white/10 hover:text-white'}`}
+                className={`p-1.5 rounded transition-colors ${isUploading ? 'text-gray-500 cursor-not-allowed' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Add Image"
             >
                 {isUploading ? (
-                    <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin"></div>
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
                 ) : (
                     <ImageIcon size={16} />
                 )}
@@ -178,14 +178,14 @@ export default function Editor({ content, onChange, onBlur, userId }) {
             }),
             Placeholder.configure({
                 placeholder: 'Start writing...',
-                emptyEditorClass: 'is-editor-empty before:content-[attr(data-placeholder)] before:text-gray-500 before:float-left before:h-0 before:pointer-events-none',
+                emptyEditorClass: 'is-editor-empty before:content-[attr(data-placeholder)] before:text-dark-subtext before:float-left before:h-0 before:pointer-events-none',
             }),
             Image,
         ],
         content: content,
         editorProps: {
             attributes: {
-                class: 'prose prose-invert max-w-none focus:outline-none min-h-[200px] text-gray-300',
+                class: 'prose dark:prose-invert max-w-none focus:outline-none min-h-[200px] text-dark-text',
             },
             handleDrop: (view, event, slice, moved) => {
                 if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {

@@ -14,32 +14,34 @@ export default function Sidebar() {
     ]
 
     return (
-        <aside className="w-64 bg-dark-surface border-r border-dark-border flex flex-col">
-            <nav className="flex-1 p-4 space-y-2">
+        <aside className="w-20 md:w-64 bg-dark-surface border-r border-dark-border flex flex-col">
+            <nav className="flex-1 p-2 md:p-4 space-y-2">
                 {navItems.map((item) => (
                     <NavLink
                         key={item.to}
                         to={item.to}
                         className={({ isActive }) =>
-                            `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${isActive
+                            `flex items-center justify-center md:justify-start gap-3 px-3 py-3 rounded-lg transition-colors ${isActive
                                 ? 'bg-blue-600 text-white'
-                                : 'text-gray-400 hover:bg-dark-hover hover:text-white'
+                                : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'
                             }`
                         }
+                        title={item.label}
                     >
-                        <item.icon size={20} />
-                        <span className="font-medium">{item.label}</span>
+                        <item.icon size={24} className="shrink-0" />
+                        <span className="font-medium hidden md:block">{item.label}</span>
                     </NavLink>
                 ))}
             </nav>
 
-            <div className="p-4 border-t border-dark-border">
+            <div className="p-2 md:p-4 border-t border-dark-border">
                 <button
                     onClick={handleLogout}
-                    className="flex items-center gap-3 px-4 py-3 rounded-lg text-gray-400 hover:bg-dark-hover hover:text-white transition-colors w-full"
+                    className="flex items-center justify-center md:justify-start gap-3 px-3 py-3 rounded-lg text-dark-subtext hover:bg-dark-hover hover:text-dark-text transition-colors w-full"
+                    title="Logout"
                 >
-                    <LogOut size={20} />
-                    <span className="font-medium">Logout</span>
+                    <LogOut size={24} className="shrink-0" />
+                    <span className="font-medium hidden md:block">Logout</span>
                 </button>
             </div>
         </aside>
