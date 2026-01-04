@@ -1,13 +1,23 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
-import { Plus, CheckCircle2, Circle, Briefcase, User } from 'lucide-react'
+import { Plus, CheckCircle2, Circle, Briefcase, User, Calendar as CalendarIcon, MoreVertical, Trash2, ExternalLink, Download } from 'lucide-react'
+import { generateGoogleCalendarUrl, downloadIcsFile } from '../utils/calendar'
 
 export default function Dashboard({ session }) {
     const [tasks, setTasks] = useState([])
     const [loading, setLoading] = useState(true)
     const [newTaskTitle, setNewTaskTitle] = useState('')
     const [newTaskCategory, setNewTaskCategory] = useState('work')
+    const [newTaskDate, setNewTaskDate] = useState('')
     const [adding, setAdding] = useState(false)
+    const [activeMenu, setActiveMenu] = useState(null)
+
+    // Close menu when clicking outside
+    useEffect(() => {
+        const handleClickOutside = () => setActiveMenu(null)
+        document.addEventListener('click', handleClickOutside)
+        return () => document.removeEventListener('click', handleClickOutside)
+    }, [])
 
     useEffect(() => {
         fetchTasks()
@@ -51,6 +61,7 @@ export default function Dashboard({ session }) {
                         title: newTaskTitle,
                         category: newTaskCategory,
                         is_done: false,
+                        due_date: newTaskDate || null,
                     },
                 ])
                 .select()
@@ -58,10 +69,60 @@ export default function Dashboard({ session }) {
             if (error) throw error
             setTasks([...data, ...tasks])
             setNewTaskTitle('')
+            setNewTaskDate('')
         } catch (error) {
             console.error('Error adding task:', error)
         } finally {
             setAdding(false)
+        }
+    }
+
+    const updateTaskDate = async (task, newDate) => {
+        try {
+            const dateToSave = newDate || null
+            const { error } = await supabase
+                .from('tasks')
+                .update({ due_date: dateToSave })
+                .eq('id', task.id)
+
+            if (error) throw error
+
+            setTasks(
+                tasks.map((t) =>
+                    t.id === task.id ? { ...t, due_date: dateToSave } : t
+                )
+            )
+        } catch (error) {
+            console.error('Error updating task date:', error)
+        }
+    }
+
+
+    const deleteTask = async (taskId) => {
+        if (!confirm('Are you sure you want to delete this task?')) return
+
+        console.log('Attempting delete for task:', taskId)
+        console.log('Current user:', session.user.id)
+
+        try {
+            const { error, count } = await supabase
+                .from('tasks')
+                .delete({ count: 'exact' })
+                .eq('id', taskId)
+
+            if (error) throw error
+
+            // If count is 0, it means the database found no rows to delete
+            // This usually happens if RLS (security policy) prevents you from touching this row
+            if (count === 0) {
+                alert('Impossible de supprimer : Vous n\'avez pas la permission ou la tâche n\'existe plus (Problème de politique RLS ?)')
+                return
+            }
+
+            setTasks(tasks.filter((t) => t.id !== taskId))
+        } catch (error) {
+            console.error('Error deleting task:', error)
+            alert('Erreur lors de la suppression: ' + error.message)
         }
     }
 
@@ -116,6 +177,12 @@ export default function Dashboard({ session }) {
                         <option value="work">Work</option>
                         <option value="personal">Personal</option>
                     </select>
+                    <input
+                        type="date"
+                        value={newTaskDate}
+                        onChange={(e) => setNewTaskDate(e.target.value)}
+                        className="input-field"
+                    />
                     <button
                         type="submit"
                         disabled={adding}
@@ -171,6 +238,31 @@ export default function Dashboard({ session }) {
                             </div>
 
                             <div className="flex items-center gap-2 text-sm">
+                                {task.due_date ? (
+                                    <div className="flex items-center gap-2 mr-2">
+                                        <div className="relative group">
+                                            <input
+                                                type="date"
+                                                value={task.due_date.split('T')[0]}
+                                                onChange={(e) => updateTaskDate(task, e.target.value)}
+                                                onClick={(e) => e.stopPropagation()}
+                                                className="bg-transparent text-gray-400 border-none outline-none p-0 w-[110px] text-sm hover:text-white transition-colors cursor-pointer"
+                                            />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            // Set to today's date when adding first time
+                                            updateTaskDate(task, new Date().toISOString().split('T')[0]);
+                                        }}
+                                        className="text-gray-600 hover:text-gray-400 transition-colors mr-2"
+                                        title="Add due date"
+                                    >
+                                        <CalendarIcon size={14} />
+                                    </button>
+                                )}
                                 {task.category === 'work' ? (
                                     <span className="flex items-center gap-1 text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full">
                                         <Briefcase size={14} />
@@ -182,6 +274,62 @@ export default function Dashboard({ session }) {
                                         Personal
                                     </span>
                                 )}
+
+                                <div className="relative">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation()
+                                            setActiveMenu(activeMenu === task.id ? null : task.id)
+                                        }}
+                                        className="p-1 hover:bg-white/10 rounded-full text-gray-400 hover:text-white transition-colors"
+                                    >
+                                        <MoreVertical size={16} />
+                                    </button>
+
+                                    {activeMenu === task.id && (
+                                        <div
+                                            className="absolute right-0 top-full mt-1 w-48 bg-[#1E1E1E] border border-gray-800 rounded-lg shadow-xl z-10 overflow-hidden"
+                                            onClick={(e) => e.stopPropagation()}
+                                        >
+                                            {task.due_date && (
+                                                <>
+                                                    <a
+                                                        href={generateGoogleCalendarUrl(task)}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                                                        onClick={() => setActiveMenu(null)}
+                                                    >
+                                                        <ExternalLink size={14} />
+                                                        Google Calendar
+                                                    </a>
+                                                    <button
+                                                        onClick={() => {
+                                                            downloadIcsFile(task)
+                                                            setActiveMenu(null)
+                                                        }}
+                                                        className="flex items-center gap-2 w-full px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                                                    >
+                                                        <Download size={14} />
+                                                        Download .ics
+                                                    </button>
+                                                    <div className="h-px bg-gray-800 my-1"></div>
+                                                </>
+                                            )}
+
+                                            <button
+                                                onClick={() => {
+                                                    deleteTask(task.id)
+                                                    setActiveMenu(null)
+                                                }}
+                                                className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                                            >
+                                                <Trash2 size={14} />
+                                                Delete Task
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     ))}
