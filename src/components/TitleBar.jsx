@@ -1,4 +1,5 @@
 import { X, Minus, Square } from 'lucide-react'
+import Logo from './Logo'
 
 export default function TitleBar() {
     const handleMinimize = () => {
@@ -22,7 +23,8 @@ export default function TitleBar() {
     return (
         <div className="h-8 bg-dark-surface border-b border-dark-border flex items-center justify-between px-4 select-none" style={{ WebkitAppRegion: 'drag' }}>
             <div className="flex-1"></div>
-            <div className="flex-1 flex justify-center">
+            <div className="flex-1 flex justify-center items-center gap-2">
+                <Logo className="w-5 h-5" />
                 <h1 className="text-sm font-semibold text-white">Second Brain</h1>
             </div>
             <div className="flex-1 flex justify-end gap-2" style={{ WebkitAppRegion: 'no-drag' }}>

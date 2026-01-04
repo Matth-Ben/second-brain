@@ -6,7 +6,7 @@
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "https://github.com/VOTRE-USERNAME/second-brain-app.git"
+    "url": "git@github.com:Matth-Ben/second-brain.git"
   },
   "scripts": {
     "dev": "vite",
@@ -48,16 +48,18 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "VOTRE-USERNAME",
-        "repo": "second-brain-app"
+        "owner": "Matth-Ben",
+        "repo": "second-brain"
       }
     ],
     "win": {
       "target": "nsis",
-      "signAndEditExecutable": false
+      "signAndEditExecutable": false,
+      "icon": "build/icon.png"
     },
     "mac": {
-      "target": "dmg"
+      "target": "dmg",
+      "icon": "build/icon.png"
     }
   }
 }
