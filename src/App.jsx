@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard'
 import Notes from './pages/Notes'
 import Sidebar from './components/Sidebar'
 import TitleBar from './components/TitleBar'
+import UpdateNotification from './components/UpdateNotification'
 
 function App() {
     const [session, setSession] = useState(null)
@@ -52,6 +53,7 @@ function App() {
                     </Routes>
                 </main>
             </div>
+            <UpdateNotification />
         </HashRouter>
     )
 }

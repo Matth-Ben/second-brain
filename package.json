@@ -4,6 +4,10 @@
   "description": "Desktop productivity app with React, Electron and Supabase",
   "main": "electron/main.js",
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VOTRE-USERNAME/second-brain-app.git"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -40,6 +44,13 @@
     "files": [
       "dist/**/*",
       "electron/**/*"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "VOTRE-USERNAME",
+        "repo": "second-brain-app"
+      }
     ],
     "win": {
       "target": "nsis",

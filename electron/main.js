@@ -1,15 +1,18 @@
-import { app, BrowserWindow, Menu } from 'electron'
+import { app, BrowserWindow, Menu, ipcMain } from 'electron'
+import { autoUpdater } from 'electron-updater'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+let mainWindow
+
 function createWindow() {
     // Cacher le menu par défaut
     Menu.setApplicationMenu(null)
 
-    const mainWindow = new BrowserWindow({
+    mainWindow = new BrowserWindow({
         width: 1400,
         height: 900,
         minWidth: 1000,
@@ -31,7 +34,47 @@ function createWindow() {
     } else {
         mainWindow.loadFile(path.join(__dirname, '../dist/index.html'))
     }
+
+    // Vérifier les mises à jour après le chargement de la fenêtre
+    mainWindow.webContents.on('did-finish-load', () => {
+        if (app.isPackaged) {
+            autoUpdater.checkForUpdates()
+        }
+    })
 }
+
+// Configuration de l'auto-updater
+autoUpdater.autoDownload = true
+autoUpdater.autoInstallOnAppQuit = true
+
+// Événements de l'auto-updater
+autoUpdater.on('checking-for-update', () => {
+    console.log('Checking for updates...')
+    mainWindow?.webContents.send('update-checking')
+})
+
+autoUpdater.on('update-available', (info) => {
+    console.log('Update available:', info.version)
+    mainWindow?.webContents.send('update-available', info)
+})
+
+autoUpdater.on('update-not-available', () => {
+    console.log('No updates available')
+})
+
+autoUpdater.on('download-progress', (progressObj) => {
+    console.log(`Download progress: ${progressObj.percent}%`)
+    mainWindow?.webContents.send('download-progress', progressObj.percent)
+})
+
+autoUpdater.on('update-downloaded', (info) => {
+    console.log('Update downloaded:', info.version)
+    mainWindow?.webContents.send('update-downloaded', info)
+})
+
+autoUpdater.on('error', (error) => {
+    console.error('Update error:', error)
+})
 
 app.whenReady().then(() => {
     createWindow()
@@ -44,8 +87,6 @@ app.whenReady().then(() => {
 })
 
 // IPC handlers pour les contrôles de fenêtre
-const { ipcMain } = require('electron')
-
 ipcMain.on('window-minimize', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     win.minimize()
@@ -63,6 +104,11 @@ ipcMain.on('window-maximize', (event) => {
 ipcMain.on('window-close', (event) => {
     const win = BrowserWindow.fromWebContents(event.sender)
     win.close()
+})
+
+// IPC handler pour installer la mise à jour
+ipcMain.on('install-update', () => {
+    autoUpdater.quitAndInstall()
 })
 
 app.on('window-all-closed', () => {
