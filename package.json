@@ -1,6 +1,6 @@
 {
   "name": "second-brain-app",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "Desktop productivity app with React, Electron and Supabase",
   "main": "electron/main.js",
   "type": "module",
@@ -18,11 +18,13 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
+    "@tiptap/extension-code-block-lowlight": "^3.14.0",
     "@tiptap/extension-image": "^3.14.0",
     "@tiptap/extension-placeholder": "^3.14.0",
     "@tiptap/react": "^3.14.0",
     "@tiptap/starter-kit": "^3.14.0",
     "electron-updater": "^6.6.2",
+    "lowlight": "^3.3.0",
     "lucide-react": "^0.309.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",

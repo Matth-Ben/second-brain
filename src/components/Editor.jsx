@@ -2,6 +2,8 @@ import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import Image from '@tiptap/extension-image'
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
+import { common, createLowlight } from 'lowlight'
 import { supabase } from '../supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
 import { useRef, useState } from 'react'
@@ -18,18 +20,12 @@ import {
     Image as ImageIcon
 } from 'lucide-react'
 
+const lowlight = createLowlight(common)
+
 const MenuBar = ({ editor, onImageUpload, isUploading }) => {
     if (!editor) {
         return null
     }
-
-    // const addImage = () => {
-    //     const url = window.prompt('URL')
-
-    //     if (url) {
-    //         editor.chain().focus().setImage({ src: url }).run()
-    //     }
-    // }
 
     return (
         <div className="flex flex-wrap gap-1 p-2 border-b border-dark-border bg-dark-surface sticky top-0 z-10">
@@ -127,7 +123,6 @@ const MenuBar = ({ editor, onImageUpload, isUploading }) => {
 export default function Editor({ content, onChange, onBlur, userId }) {
     const fileInputRef = useRef(null)
     const [isUploading, setIsUploading] = useState(false)
-    // Force re-render on editor updates (selection changes)
     const [, forceUpdate] = useState(0)
 
     const uploadImage = async (file) => {
@@ -169,9 +164,18 @@ export default function Editor({ content, onChange, onBlur, userId }) {
         }
         e.target.value = ''
     }
+
     const editor = useEditor({
         extensions: [
-            StarterKit,
+            StarterKit.configure({
+                codeBlock: false,
+            }),
+            CodeBlockLowlight.configure({
+                lowlight,
+                HTMLAttributes: {
+                    spellcheck: 'false',
+                },
+            }),
             Placeholder.configure({
                 placeholder: 'Start writing...',
                 emptyEditorClass: 'is-editor-empty before:content-[attr(data-placeholder)] before:text-gray-500 before:float-left before:h-0 before:pointer-events-none',
@@ -216,11 +220,6 @@ export default function Editor({ content, onChange, onBlur, userId }) {
             if (onBlur) onBlur(editor.getHTML())
         },
     })
-
-    // Update content if it changes externally (e.g. switching notes)
-    // But be careful not to trigger loops or reset while typing
-    // Typically Tiptap handles this by not resetting if content matches, 
-    // but a key-based remount in the parent is safer for note switching.
 
     return (
         <div className="flex flex-col h-full bg-transparent">
