@@ -7,25 +7,40 @@ export default function UpdateNotification() {
     const [updateInfo, setUpdateInfo] = useState(null)
 
     useEffect(() => {
-        if (!window.electronAPI) return
+        console.log('UpdateNotification: mounted')
+        if (!window.electronAPI) {
+            console.error('UpdateNotification: electronAPI is missing')
+            return
+        }
+        console.log('UpdateNotification: electronAPI found')
 
         // Écouter les événements de mise à jour
         window.electronAPI.onUpdateChecking(() => {
+            console.log('UpdateNotification: checking...')
             setUpdateState('checking')
         })
 
         window.electronAPI.onUpdateAvailable((info) => {
+            console.log('UpdateNotification: available', info)
             setUpdateState('downloading')
             setUpdateInfo(info)
         })
 
         window.electronAPI.onDownloadProgress((percent) => {
+            console.log('UpdateNotification: progress', percent)
             setDownloadProgress(Math.round(percent))
         })
 
         window.electronAPI.onUpdateDownloaded((info) => {
+            console.log('UpdateNotification: downloaded', info)
             setUpdateState('ready')
             setUpdateInfo(info)
+        })
+
+        window.electronAPI.onUpdateError((error) => {
+            console.error('UpdateNotification: error', error)
+            setUpdateState('error')
+            setUpdateInfo({ error })
         })
     }, [])
 
@@ -89,6 +104,17 @@ export default function UpdateNotification() {
                             <RefreshCw size={16} />
                             Redémarrer pour installer
                         </button>
+                    </div>
+                )}
+                {updateState === 'error' && (
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
+                            <span className="text-red-500 font-bold">!</span>
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-sm font-medium text-white">Erreur de mise à jour</p>
+                            <p className="text-xs text-red-400">{updateInfo?.error}</p>
+                        </div>
                     </div>
                 )}
             </div>

@@ -43,6 +43,28 @@ function createWindow() {
     mainWindow.webContents.on('did-finish-load', () => {
         if (app.isPackaged) {
             autoUpdater.checkForUpdates()
+        } else {
+            // SIMULATION POUR LE MODE DEV
+            console.log('Mode Dev : Simulation de mise à jour dans 5s...')
+            setTimeout(() => {
+                console.log('Simulating update check...')
+                mainWindow?.webContents.send('update-checking')
+
+                setTimeout(() => {
+                    mainWindow?.webContents.send('update-available', { version: '9.9.9' })
+
+                    // Simulate download
+                    let progress = 0
+                    const interval = setInterval(() => {
+                        progress += 10
+                        mainWindow?.webContents.send('download-progress', progress)
+                        if (progress >= 100) {
+                            clearInterval(interval)
+                            mainWindow?.webContents.send('update-downloaded', { version: '9.9.9' })
+                        }
+                    }, 500)
+                }, 2000)
+            }, 5000)
         }
     })
 }
@@ -78,6 +100,7 @@ autoUpdater.on('update-downloaded', (info) => {
 
 autoUpdater.on('error', (error) => {
     console.error('Update error:', error)
+    mainWindow?.webContents.send('update-error', error.message)
 })
 
 // IPC handlers pour les contrôles de fenêtre
