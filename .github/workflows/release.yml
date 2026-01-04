@@ -1,0 +1,36 @@
+name: Release Electron App
+
+# Ce script se lance UNIQUEMENT quand vous poussez un Tag commençant par 'v' (ex: v1.0.2)
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ${{ matrix.os }}
+    
+    strategy:
+      matrix:
+        # On demande au robot de faire le travail sur Windows et Mac en même temps
+        os: [windows-latest, macos-latest]
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v4
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20 # Ou votre version actuelle de Node
+
+      - name: Install Dependencies
+        run: npm install
+
+      # C'est ici que la magie opère : build + upload vers GitHub
+      - name: Build and Release
+        env:
+          # Le robot utilise la clé secrète qu'on a configurée
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+        run: |
+          npm run electron:build
