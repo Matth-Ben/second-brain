@@ -1,5 +1,5 @@
 import { app, BrowserWindow, Menu, ipcMain } from 'electron'
-import { autoUpdater } from 'electron-updater'
+import autoUpdater from 'electron-updater'
 import path from 'path'
 import { fileURLToPath } from 'url'
 
