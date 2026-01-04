@@ -1,7 +1,10 @@
 import { app, BrowserWindow, Menu, ipcMain } from 'electron'
-import autoUpdater from 'electron-updater'
 import path from 'path'
 import { fileURLToPath } from 'url'
+import { createRequire } from 'module'
+
+const require = createRequire(import.meta.url)
+const { autoUpdater } = require('electron-updater')
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
