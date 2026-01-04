@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron'
+const { contextBridge, ipcRenderer } = require('electron')
 
 contextBridge.exposeInMainWorld('electronAPI', {
     // Window controls
@@ -28,3 +28,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
     installUpdate: () => ipcRenderer.send('install-update'),
 })
+
+console.log('Preload script loaded successfully!')
+console.log('electronAPI exposed:', !!window.electronAPI)
+

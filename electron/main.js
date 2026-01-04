@@ -80,6 +80,50 @@ autoUpdater.on('error', (error) => {
     console.error('Update error:', error)
 })
 
+// IPC handlers pour les contrôles de fenêtre
+ipcMain.on('window-minimize', (event) => {
+    console.log('Received window-minimize event')
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (win) {
+        console.log('Minimizing window...')
+        win.minimize()
+    } else {
+        console.error('Window not found!')
+    }
+})
+
+ipcMain.on('window-maximize', (event) => {
+    console.log('Received window-maximize event')
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (win) {
+        if (win.isMaximized()) {
+            console.log('Unmaximizing window...')
+            win.unmaximize()
+        } else {
+            console.log('Maximizing window...')
+            win.maximize()
+        }
+    } else {
+        console.error('Window not found!')
+    }
+})
+
+ipcMain.on('window-close', (event) => {
+    console.log('Received window-close event')
+    const win = BrowserWindow.fromWebContents(event.sender)
+    if (win) {
+        console.log('Closing window...')
+        win.close()
+    } else {
+        console.error('Window not found!')
+    }
+})
+
+// IPC handler pour installer la mise à jour
+ipcMain.on('install-update', () => {
+    autoUpdater.quitAndInstall()
+})
+
 app.whenReady().then(() => {
     createWindow()
 
@@ -88,31 +132,6 @@ app.whenReady().then(() => {
             createWindow()
         }
     })
-})
-
-// IPC handlers pour les contrôles de fenêtre
-ipcMain.on('window-minimize', (event) => {
-    const win = BrowserWindow.fromWebContents(event.sender)
-    win.minimize()
-})
-
-ipcMain.on('window-maximize', (event) => {
-    const win = BrowserWindow.fromWebContents(event.sender)
-    if (win.isMaximized()) {
-        win.unmaximize()
-    } else {
-        win.maximize()
-    }
-})
-
-ipcMain.on('window-close', (event) => {
-    const win = BrowserWindow.fromWebContents(event.sender)
-    win.close()
-})
-
-// IPC handler pour installer la mise à jour
-ipcMain.on('install-update', () => {
-    autoUpdater.quitAndInstall()
 })
 
 app.on('window-all-closed', () => {

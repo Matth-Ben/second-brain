@@ -3,22 +3,35 @@ import Logo from './Logo'
 
 export default function TitleBar() {
     const handleMinimize = () => {
+        console.log('Minimize clicked, electronAPI:', window.electronAPI)
         if (window.electronAPI) {
+            console.log('Calling minimize...')
             window.electronAPI.minimize()
+        } else {
+            console.error('electronAPI not available!')
         }
     }
 
     const handleMaximize = () => {
+        console.log('Maximize clicked, electronAPI:', window.electronAPI)
         if (window.electronAPI) {
+            console.log('Calling maximize...')
             window.electronAPI.maximize()
+        } else {
+            console.error('electronAPI not available!')
         }
     }
 
     const handleClose = () => {
+        console.log('Close clicked, electronAPI:', window.electronAPI)
         if (window.electronAPI) {
+            console.log('Calling close...')
             window.electronAPI.close()
+        } else {
+            console.error('electronAPI not available!')
         }
     }
+
 
     return (
         <div className="h-8 bg-dark-surface border-b border-dark-border flex items-center justify-between px-4 select-none" style={{ WebkitAppRegion: 'drag' }}>
