@@ -14,10 +14,6 @@ export default function Sidebar() {
 
     return (
         <aside className="w-64 bg-dark-surface border-r border-dark-border flex flex-col">
-            <div className="p-6 border-b border-dark-border">
-                <h1 className="text-xl font-bold text-white">Second Brain</h1>
-            </div>
-
             <nav className="flex-1 p-4 space-y-2">
                 {navItems.map((item) => (
                     <NavLink

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 import { Plus, FileText } from 'lucide-react'
+import Editor from '../components/Editor'
 
 export default function Notes({ session }) {
     const [notes, setNotes] = useState([])
@@ -131,10 +132,7 @@ export default function Notes({ session }) {
                                     : 'bg-dark-surface hover:bg-dark-hover'
                                     }`}
                             >
-                                <h3 className="font-medium truncate mb-1">{note.title}</h3>
-                                <p className="text-sm text-gray-400 truncate">
-                                    {note.content || 'Empty note'}
-                                </p>
+                                <h3 className="font-medium truncate">{note.title}</h3>
                             </div>
                         ))
                     )}
@@ -153,18 +151,16 @@ export default function Notes({ session }) {
                                 className="text-2xl font-bold bg-transparent border-none outline-none w-full text-white placeholder-gray-500"
                                 placeholder="Note title..."
                             />
-                            {saving && (
-                                <p className="text-sm text-gray-500 mt-2">Saving...</p>
-                            )}
+
                         </div>
 
-                        <div className="flex-1 p-6">
-                            <textarea
-                                value={content}
-                                onChange={(e) => setContent(e.target.value)}
+                        <div className="flex-1 flex flex-col min-h-0 bg-dark-bg">
+                            {/* Editor Container */}
+                            <Editor
+                                key={selectedNote.id}
+                                content={content}
+                                onChange={setContent}
                                 onBlur={updateNote}
-                                className="w-full h-full bg-transparent border-none outline-none resize-none text-white placeholder-gray-500"
-                                placeholder="Start writing..."
                             />
                         </div>
                     </>
