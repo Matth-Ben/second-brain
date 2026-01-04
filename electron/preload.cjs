@@ -16,6 +16,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
         ipcRenderer.on('update-available', listener)
         return () => ipcRenderer.removeListener('update-available', listener)
     },
+    onUpdateNotAvailable: (callback) => {
+        const listener = (event, info) => callback(info)
+        ipcRenderer.on('update-not-available', listener)
+        return () => ipcRenderer.removeListener('update-not-available', listener)
+    },
     onDownloadProgress: (callback) => {
         const listener = (event, percent) => callback(percent)
         ipcRenderer.on('download-progress', listener)
@@ -33,6 +38,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     },
     installUpdate: () => ipcRenderer.send('install-update'),
     checkForUpdates: () => ipcRenderer.send('check-for-updates'),
+    getAppVersion: () => ipcRenderer.invoke('get-app-version'),
 })
 
 console.log('Preload script loaded successfully!')

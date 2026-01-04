@@ -22,7 +22,31 @@ export default function Settings({ session }) {
 
     // Pour la version, idéalement on l'importerait de package.json, 
     // mais pour l'instant on va utiliser une constante ou le récupérer via IPC si possible
-    const [appVersion, setAppVersion] = useState('1.0.6')
+    const [appVersion, setAppVersion] = useState('Loading...')
+
+    useEffect(() => {
+        if (window.electronAPI) {
+            window.electronAPI.getAppVersion().then(version => {
+                setAppVersion(version)
+            })
+
+            // Listen for update results
+            const cleanupNotAvailable = window.electronAPI.onUpdateNotAvailable(() => {
+                showNotification('success', 'You are on the latest version.')
+            })
+
+            const cleanupError = window.electronAPI.onUpdateError((err) => {
+                // Already handled by UpdateNotification component for global errors, 
+                // but we can also handle it here if we want specific feedback for the manual check.
+                console.log('Update check error in Settings:', err)
+            })
+
+            return () => {
+                cleanupNotAvailable()
+                cleanupError()
+            }
+        }
+    }, [])
 
     const showNotification = (type, message) => {
         setNotification({ type, message })

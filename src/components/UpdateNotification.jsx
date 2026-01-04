@@ -20,6 +20,11 @@ export default function UpdateNotification() {
             setUpdateState('checking')
         })
 
+        window.electronAPI.onUpdateNotAvailable(() => {
+            console.log('UpdateNotification: not available')
+            setUpdateState(null) // Hide 'checking' spinner
+        })
+
         window.electronAPI.onUpdateAvailable((info) => {
             console.log('UpdateNotification: available', info)
             setUpdateState('downloading')
@@ -41,6 +46,7 @@ export default function UpdateNotification() {
             console.error('UpdateNotification: error', error)
             setUpdateState('error')
             setUpdateInfo({ error })
+            setTimeout(() => setUpdateState(null), 5000)
         })
     }, [])
 

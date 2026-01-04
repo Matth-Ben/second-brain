@@ -1,6 +1,6 @@
 {
   "name": "second-brain-app",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "Desktop productivity app with React, Electron and Supabase",
   "main": "electron/main.js",
   "type": "module",

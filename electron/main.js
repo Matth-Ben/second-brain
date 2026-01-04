@@ -84,8 +84,9 @@ autoUpdater.on('update-available', (info) => {
     mainWindow?.webContents.send('update-available', info)
 })
 
-autoUpdater.on('update-not-available', () => {
+autoUpdater.on('update-not-available', (info) => {
     console.log('No updates available')
+    mainWindow?.webContents.send('update-not-available', info)
 })
 
 autoUpdater.on('download-progress', (progressObj) => {
@@ -156,6 +157,10 @@ ipcMain.on('check-for-updates', () => {
         console.log('Dev mode: skipping actual check')
         mainWindow?.webContents.send('update-error', 'Cannot check updates in dev mode')
     }
+})
+
+ipcMain.handle('get-app-version', () => {
+    return app.getVersion()
 })
 
 app.whenReady().then(() => {
