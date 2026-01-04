@@ -32,6 +32,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
         return () => ipcRenderer.removeListener('update-error', listener)
     },
     installUpdate: () => ipcRenderer.send('install-update'),
+    checkForUpdates: () => ipcRenderer.send('check-for-updates'),
 })
 
 console.log('Preload script loaded successfully!')

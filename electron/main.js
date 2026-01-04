@@ -25,7 +25,7 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
-            preload: path.join(__dirname, 'preload.js'),
+            preload: path.join(__dirname, 'preload.cjs'),
         },
         frame: false,
         titleBarStyle: 'hidden',
@@ -145,6 +145,17 @@ ipcMain.on('window-close', (event) => {
 // IPC handler pour installer la mise à jour
 ipcMain.on('install-update', () => {
     autoUpdater.quitAndInstall()
+})
+
+// IPC handler pour vérifier les mises à jour manuellement
+ipcMain.on('check-for-updates', () => {
+    console.log('Manual update check requested')
+    if (app.isPackaged) {
+        autoUpdater.checkForUpdates()
+    } else {
+        console.log('Dev mode: skipping actual check')
+        mainWindow?.webContents.send('update-error', 'Cannot check updates in dev mode')
+    }
 })
 
 app.whenReady().then(() => {

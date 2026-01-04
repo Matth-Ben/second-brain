@@ -4,6 +4,7 @@ import { supabase } from './supabaseClient'
 import Auth from './pages/Auth'
 import Dashboard from './pages/Dashboard'
 import Notes from './pages/Notes'
+import Settings from './pages/Settings'
 import Sidebar from './components/Sidebar'
 import TitleBar from './components/TitleBar'
 import UpdateNotification from './components/UpdateNotification'
@@ -49,6 +50,7 @@ function App() {
                         <Route path="/" element={<Navigate to="/dashboard" replace />} />
                         <Route path="/dashboard" element={<Dashboard session={session} />} />
                         <Route path="/notes" element={<Notes session={session} />} />
+                        <Route path="/settings" element={<Settings session={session} />} />
                         <Route path="*" element={<Navigate to="/dashboard" replace />} />
                     </Routes>
                 </main>

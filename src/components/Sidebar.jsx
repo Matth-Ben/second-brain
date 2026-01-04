@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, FileText, LogOut } from 'lucide-react'
+import { LayoutDashboard, FileText, LogOut, Settings } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 
 export default function Sidebar() {
@@ -10,6 +10,7 @@ export default function Sidebar() {
     const navItems = [
         { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { to: '/notes', icon: FileText, label: 'Notes' },
+        { to: '/settings', icon: Settings, label: 'Settings' },
     ]
 
     return (
