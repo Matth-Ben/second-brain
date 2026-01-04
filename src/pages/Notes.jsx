@@ -3,6 +3,13 @@ import { supabase } from '../supabaseClient'
 import { Plus, FileText } from 'lucide-react'
 import Editor from '../components/Editor'
 
+const extractImageUrls = (html) => {
+    if (!html) return []
+    const parser = new DOMParser()
+    const doc = parser.parseFromString(html, 'text/html')
+    return Array.from(doc.querySelectorAll('img')).map((img) => img.src)
+}
+
 export default function Notes({ session }) {
     const [notes, setNotes] = useState([])
     const [selectedNote, setSelectedNote] = useState(null)
@@ -73,6 +80,19 @@ export default function Notes({ session }) {
 
         setSaving(true)
         try {
+            // Check for deleted images
+            const oldImages = extractImageUrls(selectedNote.content)
+            const newImages = extractImageUrls(content)
+            const deletedImages = oldImages.filter((img) => !newImages.includes(img) && img.includes('note-images'))
+
+            if (deletedImages.length > 0) {
+                const pathsToDelete = deletedImages.map((url) => url.split('note-images/')[1]).filter(Boolean)
+                if (pathsToDelete.length > 0) {
+                    console.log('Deleting images from storage:', pathsToDelete)
+                    await supabase.storage.from('note-images').remove(pathsToDelete)
+                }
+            }
+
             const { error } = await supabase
                 .from('notes')
                 .update({
@@ -91,6 +111,9 @@ export default function Notes({ session }) {
                         : n
                 )
             )
+
+            // Update selectedNote to keep state in sync for next comparison
+            setSelectedNote({ ...selectedNote, title, content, updated_at: new Date().toISOString() })
         } catch (error) {
 
         } finally {
@@ -161,6 +184,7 @@ export default function Notes({ session }) {
                                 content={content}
                                 onChange={setContent}
                                 onBlur={updateNote}
+                                userId={session.user.id}
                             />
                         </div>
                     </>
