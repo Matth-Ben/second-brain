@@ -14,7 +14,8 @@
     "preview": "vite preview",
     "electron": "electron .",
     "electron:dev": "concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "electron:build": "vite build && electron-builder"
+    "electron:build": "vite build && electron-builder",
+    "electron:build:linux": "vite build && electron-builder --linux"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
@@ -68,6 +69,14 @@
     "mac": {
       "target": "dmg",
       "icon": "build/icon.png"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb"
+      ],
+      "icon": "build/icon.png",
+      "category": "Office"
     }
   }
 }
