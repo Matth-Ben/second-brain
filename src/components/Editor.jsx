@@ -2,6 +2,8 @@ import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import Image from '@tiptap/extension-image'
+import TaskList from '@tiptap/extension-task-list'
+import TaskItem from '@tiptap/extension-task-item'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import { common, createLowlight } from 'lowlight'
 import { supabase } from '../supabaseClient'
@@ -17,7 +19,8 @@ import {
     Heading1,
     Heading2,
     Quote,
-    Image as ImageIcon
+    Image as ImageIcon,
+    CheckSquare
 } from 'lucide-react'
 
 const lowlight = createLowlight(common)
@@ -86,6 +89,13 @@ const MenuBar = ({ editor, onImageUpload, isUploading }) => {
                 title="Ordered List"
             >
                 <ListOrdered size={16} />
+            </button>
+            <button
+                onClick={() => editor.chain().focus().toggleTaskList().run()}
+                className={`p-1.5 rounded transition-colors ${editor.isActive('taskList') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
+                title="Task List"
+            >
+                <CheckSquare size={16} />
             </button>
 
             <div className="w-px bg-dark-border mx-1 self-stretch"></div>
@@ -181,6 +191,17 @@ export default function Editor({ content, onChange, onBlur, userId }) {
                 emptyEditorClass: 'is-editor-empty before:content-[attr(data-placeholder)] before:text-dark-subtext before:float-left before:h-0 before:pointer-events-none',
             }),
             Image,
+            TaskList.configure({
+                HTMLAttributes: {
+                    class: 'task-list',
+                },
+            }),
+            TaskItem.configure({
+                nested: true,
+                HTMLAttributes: {
+                    class: 'task-item',
+                },
+            }),
         ],
         content: content,
         editorProps: {
