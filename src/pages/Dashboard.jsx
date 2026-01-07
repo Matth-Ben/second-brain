@@ -153,6 +153,29 @@ export default function Dashboard({ session }) {
         )
     }
 
+    // Get today's date in YYYY-MM-DD format
+    const getTodayDate = () => {
+        const today = new Date()
+        return today.toISOString().split('T')[0]
+    }
+
+    // Filter tasks for today and tasks without dates
+    const todayDate = getTodayDate()
+    const todayTasks = tasks.filter(task => {
+        if (!task.due_date) return false
+        const taskDate = task.due_date.split('T')[0]
+        return taskDate === todayDate
+    })
+    const tasksWithoutDate = tasks.filter(task => !task.due_date)
+
+    // Filter remaining tasks (exclude today's tasks and tasks without dates)
+    const otherTasks = tasks.filter(task => {
+        if (!task.due_date) return false // Exclude tasks without date
+        const taskDate = task.due_date.split('T')[0]
+        return taskDate !== todayDate // Exclude today's tasks
+    })
+
+
     return (
         <div className="max-w-4xl mx-auto p-8">
             <div className="mb-8">
@@ -200,7 +223,105 @@ export default function Dashboard({ session }) {
                 </form>
             </div>
 
-            {tasks.length === 0 ? (
+            {/* Daily Tasks Section */}
+            {(todayTasks.length > 0 || tasksWithoutDate.length > 0) && (
+                <div className="card mb-6">
+                    <h2 className="text-xl font-semibold mb-4 text-dark-text flex items-center gap-2">
+                        <CalendarIcon size={20} className="text-blue-400" />
+                        Tâches du jour
+                    </h2>
+
+                    {todayTasks.length > 0 && (
+                        <div className="mb-4">
+                            <h3 className="text-sm font-medium text-dark-subtext mb-2 uppercase tracking-wide">
+                                Aujourd'hui ({todayTasks.length})
+                            </h3>
+                            <div className="space-y-2">
+                                {todayTasks.map((task) => (
+                                    <div
+                                        key={task.id}
+                                        className="flex items-center gap-3 p-3 bg-dark-surface rounded-lg hover:bg-dark-hover transition-colors cursor-pointer border border-dark-border"
+                                        onClick={() => toggleTask(task)}
+                                    >
+                                        <button className="flex-shrink-0">
+                                            {task.is_done ? (
+                                                <CheckCircle2 size={20} className="text-green-500" />
+                                            ) : (
+                                                <Circle size={20} className="text-dark-subtext" />
+                                            )}
+                                        </button>
+                                        <p className={`flex-1 text-sm ${task.is_done ? 'line-through text-dark-subtext' : 'text-dark-text'}`}>
+                                            {task.title}
+                                        </p>
+                                        {task.category === 'work' ? (
+                                            <span className="flex items-center gap-1 text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full text-xs">
+                                                <Briefcase size={12} />
+                                                Work
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center gap-1 text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full text-xs">
+                                                <User size={12} />
+                                                Personal
+                                            </span>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {tasksWithoutDate.length > 0 && (
+                        <div>
+                            <h3 className="text-sm font-medium text-dark-subtext mb-2 uppercase tracking-wide">
+                                Sans date définie ({tasksWithoutDate.length})
+                            </h3>
+                            <div className="space-y-2">
+                                {tasksWithoutDate.map((task) => (
+                                    <div
+                                        key={task.id}
+                                        className="flex items-center gap-3 p-3 bg-dark-surface rounded-lg hover:bg-dark-hover transition-colors cursor-pointer border border-dark-border"
+                                        onClick={() => toggleTask(task)}
+                                    >
+                                        <button className="flex-shrink-0">
+                                            {task.is_done ? (
+                                                <CheckCircle2 size={20} className="text-green-500" />
+                                            ) : (
+                                                <Circle size={20} className="text-dark-subtext" />
+                                            )}
+                                        </button>
+                                        <p className={`flex-1 text-sm ${task.is_done ? 'line-through text-dark-subtext' : 'text-dark-text'}`}>
+                                            {task.title}
+                                        </p>
+                                        {task.category === 'work' ? (
+                                            <span className="flex items-center gap-1 text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full text-xs">
+                                                <Briefcase size={12} />
+                                                Work
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center gap-1 text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full text-xs">
+                                                <User size={12} />
+                                                Personal
+                                            </span>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+
+            {otherTasks.length === 0 && tasks.length > 0 ? (
+                <div className="card text-center py-12">
+                    <div className="text-dark-subtext mb-2">
+                        <CheckCircle2 size={48} className="mx-auto mb-4 opacity-50" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-2 text-dark-text">Toutes vos tâches sont dans la liste du jour !</h3>
+                    <p className="text-dark-subtext">
+                        Consultez la section "Tâches du jour" ci-dessus
+                    </p>
+                </div>
+            ) : otherTasks.length === 0 ? (
                 <div className="card text-center py-12">
                     <div className="text-dark-subtext mb-2">
                         <Circle size={48} className="mx-auto mb-4 opacity-50" />
@@ -212,7 +333,7 @@ export default function Dashboard({ session }) {
                 </div>
             ) : (
                 <div className="space-y-3">
-                    {tasks.map((task) => (
+                    {otherTasks.map((task) => (
                         <div
                             key={task.id}
                             className="card flex items-center gap-4 hover:bg-dark-hover transition-colors cursor-pointer"
