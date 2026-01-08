@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { LayoutDashboard, FileText, LogOut, Settings } from 'lucide-react'
+import { LayoutDashboard, FileText, Calendar, LogOut, Settings } from 'lucide-react'
 import { supabase } from '../supabaseClient'
 
 export default function Sidebar() {
@@ -10,7 +10,8 @@ export default function Sidebar() {
     const navItems = [
         { to: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
         { to: '/notes', icon: FileText, label: 'Notes' },
-        { to: '/settings', icon: Settings, label: 'Settings' },
+        { to: '/planning', icon: Calendar, label: 'Planning' },
+        { to: '/settings', icon: Settings, label: 'Paramètres' },
     ]
 
     return (
@@ -38,10 +39,10 @@ export default function Sidebar() {
                 <button
                     onClick={handleLogout}
                     className="flex items-center justify-center md:justify-start gap-3 px-3 py-3 rounded-lg text-dark-subtext hover:bg-dark-hover hover:text-dark-text transition-colors w-full"
-                    title="Logout"
+                    title="Déconnexion"
                 >
                     <LogOut size={24} className="shrink-0" />
-                    <span className="font-medium hidden md:block">Logout</span>
+                    <span className="font-medium hidden md:block">Déconnexion</span>
                 </button>
             </div>
         </aside>

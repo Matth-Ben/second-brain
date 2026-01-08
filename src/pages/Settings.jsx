@@ -32,7 +32,7 @@ export default function Settings({ session }) {
 
             // Listen for update results
             const cleanupNotAvailable = window.electronAPI.onUpdateNotAvailable(() => {
-                showNotification('success', 'You are on the latest version.')
+                showNotification('success', 'Vous utilisez la dernière version.')
             })
 
             const cleanupError = window.electronAPI.onUpdateError((err) => {
@@ -58,12 +58,12 @@ export default function Settings({ session }) {
         if (!newPassword || !confirmPassword) return
 
         if (newPassword !== confirmPassword) {
-            showNotification('error', 'Passwords do not match!')
+            showNotification('error', 'Les mots de passe ne correspondent pas !')
             return
         }
 
         if (newPassword.length < 6) {
-            showNotification('error', 'Password must be at least 6 characters')
+            showNotification('error', 'Le mot de passe doit contenir au moins 6 caractères')
             return
         }
 
@@ -71,7 +71,7 @@ export default function Settings({ session }) {
         try {
             const { error } = await supabase.auth.updateUser({ password: newPassword })
             if (error) throw error
-            showNotification('success', 'Password updated successfully!')
+            showNotification('success', 'Mot de passe mis à jour avec succès !')
             setNewPassword('')
             setConfirmPassword('')
         } catch (error) {
@@ -112,7 +112,7 @@ export default function Settings({ session }) {
             document.body.removeChild(a)
             URL.revokeObjectURL(url)
         } catch (error) {
-            showNotification('error', 'Export failed')
+            showNotification('error', 'Échec de l\'exportation')
         } finally {
             setIsExporting(false)
         }
@@ -128,17 +128,17 @@ export default function Settings({ session }) {
     }
 
     const tabs = [
-        { id: 'appearance', label: 'Appearance', icon: Palette },
-        { id: 'account', label: 'Account', icon: User },
-        { id: 'data', label: 'Data', icon: Database },
-        { id: 'about', label: 'About', icon: Info },
+        { id: 'appearance', label: 'Apparence', icon: Palette },
+        { id: 'account', label: 'Compte', icon: User },
+        { id: 'data', label: 'Données', icon: Database },
+        { id: 'about', label: 'À propos', icon: Info },
     ]
 
     return (
         <div className="flex h-full bg-dark-bg text-gray-200">
             {/* Sidebar des Paramètres */}
             <div className="w-64 border-r border-dark-border p-4 bg-dark-surface/50">
-                <h2 className="text-xl font-bold mb-6 text-white px-2">Settings</h2>
+                <h2 className="text-xl font-bold mb-6 text-white px-2">Paramètres</h2>
                 <nav className="space-y-1">
                     {tabs.map((tab) => (
                         <button
@@ -163,10 +163,10 @@ export default function Settings({ session }) {
                     {/* APPARENCE */}
                     {activeTab === 'appearance' && (
                         <section className="space-y-6 animate-fade-in">
-                            <h3 className="text-2xl font-bold text-dark-text mb-6">Appearance</h3>
+                            <h3 className="text-2xl font-bold text-dark-text mb-6">Apparence</h3>
 
                             <div className="bg-dark-surface p-6 rounded-xl border border-dark-border">
-                                <h4 className="font-medium text-dark-text mb-4">Theme Preference</h4>
+                                <h4 className="font-medium text-dark-text mb-4">Préférence de thème</h4>
                                 <div className="grid grid-cols-3 gap-4">
                                     <button
                                         onClick={() => setTheme('light')}
@@ -176,7 +176,7 @@ export default function Settings({ session }) {
                                             }`}
                                     >
                                         <div className="w-full h-20 bg-gray-200 rounded mb-2 opacity-50 border border-gray-300"></div>
-                                        <span>Light</span>
+                                        <span>Clair</span>
                                     </button>
 
                                     <button
@@ -187,7 +187,7 @@ export default function Settings({ session }) {
                                             }`}
                                     >
                                         <div className="w-full h-20 bg-[#0a0a0a] rounded mb-2 border border-gray-700"></div>
-                                        <span>Dark</span>
+                                        <span>Sombre</span>
                                     </button>
 
                                     <button
@@ -198,7 +198,7 @@ export default function Settings({ session }) {
                                             }`}
                                     >
                                         <div className="w-full h-20 bg-gradient-to-r from-gray-200 to-[#0a0a0a] rounded mb-2 border border-gray-400"></div>
-                                        <span>System</span>
+                                        <span>Système</span>
                                     </button>
                                 </div>
                             </div>
@@ -208,7 +208,7 @@ export default function Settings({ session }) {
                     {/* COMPTE */}
                     {activeTab === 'account' && (
                         <section className="space-y-6 animate-fade-in">
-                            <h3 className="text-2xl font-bold text-dark-text mb-6">Account</h3>
+                            <h3 className="text-2xl font-bold text-dark-text mb-6">Compte</h3>
 
                             <div className="bg-dark-surface p-6 rounded-xl border border-dark-border">
                                 <div className="flex items-center gap-4 mb-6">
@@ -216,18 +216,18 @@ export default function Settings({ session }) {
                                         {session?.user.email[0].toUpperCase()}
                                     </div>
                                     <div>
-                                        <h4 className="text-lg font-medium text-dark-text">Logged in as</h4>
+                                        <h4 className="text-lg font-medium text-dark-text">Connecté en tant que</h4>
                                         <p className="text-dark-subtext">{session?.user.email}</p>
                                     </div>
                                 </div>
 
                                 {/* Password Change Section */}
                                 <div className="mb-6 pt-6 border-t border-dark-border">
-                                    <h5 className="font-medium text-dark-text mb-4">Change Password</h5>
+                                    <h5 className="font-medium text-dark-text mb-4">Changer le mot de passe</h5>
                                     <form onSubmit={handlePasswordChange} className="space-y-3">
                                         <input
                                             type="password"
-                                            placeholder="New Password"
+                                            placeholder="Nouveau mot de passe"
                                             value={newPassword}
                                             onChange={(e) => setNewPassword(e.target.value)}
                                             className={`w-full bg-dark-bg border rounded-lg px-3 py-2 text-dark-text focus:outline-none transition-colors ${!confirmPassword
@@ -240,7 +240,7 @@ export default function Settings({ session }) {
                                         />
                                         <input
                                             type="password"
-                                            placeholder="Confirm New Password"
+                                            placeholder="Confirmer le mot de passe"
                                             value={confirmPassword}
                                             onChange={(e) => setConfirmPassword(e.target.value)}
                                             className={`w-full bg-dark-bg border rounded-lg px-3 py-2 text-dark-text focus:outline-none transition-colors ${!confirmPassword
@@ -256,7 +256,7 @@ export default function Settings({ session }) {
                                             disabled={loading}
                                             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50"
                                         >
-                                            {loading ? 'Updating...' : 'Update Password'}
+                                            {loading ? 'Mise à jour...' : 'Mettre à jour le mot de passe'}
                                         </button>
                                     </form>
                                 </div>
@@ -266,7 +266,7 @@ export default function Settings({ session }) {
                                     className="flex items-center gap-2 px-4 py-2 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-colors w-full"
                                 >
                                     <LogOut size={18} />
-                                    Log out
+                                    Se déconnecter
                                 </button>
                             </div>
                         </section>
@@ -275,12 +275,12 @@ export default function Settings({ session }) {
                     {/* DONNÉES */}
                     {activeTab === 'data' && (
                         <section className="space-y-6 animate-fade-in">
-                            <h3 className="text-2xl font-bold text-dark-text mb-6">Data Management</h3>
+                            <h3 className="text-2xl font-bold text-dark-text mb-6">Gestion des données</h3>
 
                             <div className="bg-dark-surface p-6 rounded-xl border border-dark-border">
-                                <h4 className="font-medium text-dark-text mb-2">Export Data</h4>
+                                <h4 className="font-medium text-dark-text mb-2">Exporter les données</h4>
                                 <p className="text-dark-subtext text-sm mb-6">
-                                    Download a JSON backup of all your tasks and notes.
+                                    Téléchargez une sauvegarde JSON de toutes vos tâches et notes.
                                 </p>
 
                                 <button
@@ -293,7 +293,7 @@ export default function Settings({ session }) {
                                     ) : (
                                         <Download size={18} />
                                     )}
-                                    {isExporting ? 'Exporting...' : 'Export to JSON'}
+                                    {isExporting ? 'Exportation...' : 'Exporter en JSON'}
                                 </button>
                             </div>
                         </section>
@@ -302,7 +302,7 @@ export default function Settings({ session }) {
                     {/* À PROPOS */}
                     {activeTab === 'about' && (
                         <section className="space-y-6 animate-fade-in">
-                            <h3 className="text-2xl font-bold text-dark-text mb-6">About</h3>
+                            <h3 className="text-2xl font-bold text-dark-text mb-6">À propos</h3>
 
                             <div className="bg-dark-surface p-6 rounded-xl border border-dark-border text-center">
                                 <div className="w-20 h-20 bg-gradient-to-br from-blue-600 to-purple-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg">
@@ -315,11 +315,11 @@ export default function Settings({ session }) {
                                     onClick={checkForUpdates}
                                     className="text-sm text-blue-500 hover:text-blue-400 underline"
                                 >
-                                    Check for updates
+                                    Vérifier les mises à jour
                                 </button>
 
                                 <p className="text-xs text-dark-subtext mt-8">
-                                    Built with Electron, React & Supabase.
+                                    Créé avec Electron, React & Supabase.
                                 </p>
                             </div>
                         </section>

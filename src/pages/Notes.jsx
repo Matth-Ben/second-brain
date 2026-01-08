@@ -63,7 +63,7 @@ export default function Notes({ session }) {
                 .insert([
                     {
                         user_id: session.user.id,
-                        title: 'Untitled Note',
+                        title: 'Note sans titre',
                         content: '',
                     },
                 ])
@@ -226,7 +226,7 @@ export default function Notes({ session }) {
                     {notes.length === 0 ? (
                         <div className="text-center py-8 text-gray-500">
                             <FileText size={48} className="mx-auto mb-4 opacity-50" />
-                            <p className="text-sm">No notes yet</p>
+                            <p className="text-sm">Aucune note pour le moment</p>
                         </div>
                     ) : (
                         notes.map((note) => (
@@ -253,7 +253,7 @@ export default function Notes({ session }) {
                 <div className="p-4 border-b border-dark-border">
                     <button onClick={createNote} className="btn-primary w-full flex items-center justify-center gap-2">
                         <Plus size={20} />
-                        New Note
+                        Nouvelle note
                     </button>
                 </div>
             </div>
@@ -274,7 +274,7 @@ export default function Notes({ session }) {
                                 onChange={(e) => setTitle(e.target.value)}
                                 onBlur={updateNote}
                                 className="flex-1 text-2xl font-bold bg-transparent border-none outline-none text-dark-text placeholder-dark-subtext min-w-0 mr-4"
-                                placeholder="Note title..."
+                                placeholder="Titre de la note..."
                             />
                             <button
                                 onClick={toggleFavorite}
@@ -282,14 +282,14 @@ export default function Notes({ session }) {
                                     ? 'text-yellow-400 hover:bg-yellow-400/10'
                                     : 'text-dark-subtext hover:text-yellow-400 hover:bg-yellow-400/10'
                                     }`}
-                                title={selectedNote.is_favorite ? "Remove from favorites" : "Add to favorites"}
+                                title={selectedNote.is_favorite ? "Retirer des favoris" : "Ajouter aux favoris"}
                             >
                                 <Star size={20} fill={selectedNote.is_favorite ? "currentColor" : "none"} />
                             </button>
                             <button
                                 onClick={handleDeleteClick}
                                 className="p-2 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-colors"
-                                title="Delete note"
+                                title="Supprimer la note"
                             >
                                 <Trash2 size={20} />
                             </button>
@@ -311,7 +311,7 @@ export default function Notes({ session }) {
                     <div className="flex-1 flex items-center justify-center text-dark-subtext">
                         <div className="text-center">
                             <FileText size={64} className="mx-auto mb-4 opacity-50" />
-                            <p>Select a note or create a new one</p>
+                            <p>Sélectionnez une note ou créez-en une nouvelle</p>
                         </div>
                     </div>
                 )}
@@ -321,23 +321,23 @@ export default function Notes({ session }) {
             {showDeleteModal && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm animate-fade-in">
                     <div className="bg-dark-surface border border-dark-border p-6 rounded-xl shadow-2xl max-w-sm w-full mx-4">
-                        <h3 className="text-xl font-bold text-dark-text mb-4">Delete Note?</h3>
+                        <h3 className="text-xl font-bold text-dark-text mb-4">Supprimer la note ?</h3>
                         <p className="text-dark-subtext mb-6">
-                            Are you sure you want to delete <span className="text-dark-text font-medium">"{selectedNote?.title}"</span>?
-                            This action cannot be undone.
+                            Êtes-vous sûr de vouloir supprimer <span className="text-dark-text font-medium">"{selectedNote?.title}"</span> ?
+                            Cette action est irréversible.
                         </p>
                         <div className="flex justify-end gap-3">
                             <button
                                 onClick={() => setShowDeleteModal(false)}
                                 className="px-4 py-2 text-gray-400 hover:text-white hover:bg-white/5 rounded-lg transition-colors"
                             >
-                                Cancel
+                                Annuler
                             </button>
                             <button
                                 onClick={confirmDelete}
                                 className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
                             >
-                                Delete
+                                Supprimer
                             </button>
                         </div>
                     </div>

@@ -1,7 +1,19 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
-import { Plus, CheckCircle2, Circle, Briefcase, User, Calendar as CalendarIcon, MoreVertical, Trash2, ExternalLink, Download } from 'lucide-react'
+import { Plus, CheckCircle2, Circle, Briefcase, User, Calendar as CalendarIcon, MoreVertical, Trash2, ExternalLink, Download, Home, Heart, GraduationCap, DollarSign, PartyPopper, Lightbulb } from 'lucide-react'
 import { generateGoogleCalendarUrl, downloadIcsFile } from '../utils/calendar'
+import TaskModal from '../components/TaskModal'
+
+// Categories configuration (same as TaskModal)
+const CATEGORIES = [
+    { value: 'work', label: 'Travail', icon: Briefcase, color: 'text-blue-400' },
+    { value: 'home', label: 'Maison', icon: Home, color: 'text-orange-400' },
+    { value: 'health', label: 'Santé & Bien-être', icon: Heart, color: 'text-red-400' },
+    { value: 'learning', label: 'Apprentissage', icon: GraduationCap, color: 'text-green-400' },
+    { value: 'finance', label: 'Finances', icon: DollarSign, color: 'text-yellow-400' },
+    { value: 'social', label: 'Social & Loisirs', icon: PartyPopper, color: 'text-pink-400' },
+    { value: 'ideas', label: 'Idées / Vrac', icon: Lightbulb, color: 'text-purple-400' },
+]
 
 export default function Dashboard({ session }) {
     const [tasks, setTasks] = useState([])
@@ -11,12 +23,29 @@ export default function Dashboard({ session }) {
     const [newTaskDate, setNewTaskDate] = useState('')
     const [adding, setAdding] = useState(false)
     const [activeMenu, setActiveMenu] = useState(null)
+    const [selectedTask, setSelectedTask] = useState(null)
+    const [isModalOpen, setIsModalOpen] = useState(false)
 
     // Close menu when clicking outside
     useEffect(() => {
-        const handleClickOutside = () => setActiveMenu(null)
-        document.addEventListener('click', handleClickOutside)
-        return () => document.removeEventListener('click', handleClickOutside)
+        const handleClickOutside = (event) => {
+            // Close task menu
+            setActiveMenu(null)
+
+            // Close category dropdown
+            const dropdown = document.getElementById('new-task-category-dropdown')
+            const button = event.target.closest('button')
+
+            if (dropdown && !dropdown.classList.contains('hidden')) {
+                // Check if click is outside both dropdown and its trigger button
+                if (!dropdown.contains(event.target) && (!button || !button.onclick)) {
+                    dropdown.classList.add('hidden')
+                }
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside)
+        return () => document.removeEventListener('mousedown', handleClickOutside)
     }, [])
 
     useEffect(() => {
@@ -145,6 +174,39 @@ export default function Dashboard({ session }) {
         }
     }
 
+    const openTaskModal = (task) => {
+        setSelectedTask(task)
+        setIsModalOpen(true)
+    }
+
+    const handleUpdateTask = async (updatedTask) => {
+        try {
+            const { error } = await supabase
+                .from('tasks')
+                .update({
+                    title: updatedTask.title,
+                    category: updatedTask.category,
+                    due_date: updatedTask.due_date,
+                    description: updatedTask.description,
+                    is_done: updatedTask.is_done
+                })
+                .eq('id', updatedTask.id)
+
+            if (error) throw error
+
+            setTasks(tasks.map(t => t.id === updatedTask.id ? updatedTask : t))
+            await fetchTasks() // Refresh to get latest data
+        } catch (error) {
+            console.error('Error updating task:', error)
+            alert('Erreur lors de la mise à jour: ' + error.message)
+        }
+    }
+
+    const handleDeleteTask = async (taskId) => {
+        await deleteTask(taskId)
+    }
+
+
     if (loading) {
         return (
             <div className="flex items-center justify-center h-full">
@@ -180,43 +242,83 @@ export default function Dashboard({ session }) {
         <div className="max-w-4xl mx-auto p-8">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold mb-2 text-dark-text">Dashboard</h1>
-                <p className="text-dark-subtext">Manage your tasks and stay productive</p>
+                <p className="text-dark-subtext">Gérez vos tâches et restez productif</p>
             </div>
 
             <div className="card mb-6">
-                <form onSubmit={addTask} className="flex gap-3">
+                <form onSubmit={addTask} className="flex flex-wrap gap-3">
                     <input
                         type="text"
                         value={newTaskTitle}
                         onChange={(e) => setNewTaskTitle(e.target.value)}
-                        placeholder="Add a new task..."
-                        className="input-field flex-1 text-dark-text placeholder-dark-subtext"
+                        placeholder="Ajouter une nouvelle tâche..."
+                        className="input-field flex-1 min-w-[200px] text-dark-text placeholder-dark-subtext h-10"
                     />
-                    <select
-                        value={newTaskCategory}
-                        onChange={(e) => setNewTaskCategory(e.target.value)}
-                        className="input-field text-dark-text"
-                    >
-                        <option value="work">Work</option>
-                        <option value="personal">Personal</option>
-                    </select>
+                    <div className="relative flex-shrink-0">
+                        <button
+                            type="button"
+                            onClick={() => {
+                                const dropdown = document.getElementById('new-task-category-dropdown')
+                                dropdown.classList.toggle('hidden')
+                            }}
+                            className="input-field text-dark-text flex items-center justify-between w-48 h-10"
+                        >
+                            <span className="flex items-center gap-2">
+                                {(() => {
+                                    const selectedCategory = CATEGORIES.find(cat => cat.value === newTaskCategory) || CATEGORIES[0]
+                                    const Icon = selectedCategory.icon
+                                    return (
+                                        <>
+                                            <Icon size={16} className={selectedCategory.color} />
+                                            <span className="text-sm">{selectedCategory.label}</span>
+                                        </>
+                                    )
+                                })()}
+                            </span>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </button>
+                        <div
+                            id="new-task-category-dropdown"
+                            className="hidden absolute z-10 w-full mt-1 bg-dark-surface border border-dark-border rounded-lg shadow-lg overflow-hidden max-h-60 overflow-y-auto custom-scrollbar"
+                        >
+                            {CATEGORIES.map((category) => {
+                                const Icon = category.icon
+                                return (
+                                    <button
+                                        key={category.value}
+                                        type="button"
+                                        onClick={() => {
+                                            setNewTaskCategory(category.value)
+                                            document.getElementById('new-task-category-dropdown').classList.add('hidden')
+                                        }}
+                                        className="w-full flex items-center gap-2 px-4 py-3 hover:bg-dark-hover transition-colors text-left"
+                                    >
+                                        <Icon size={16} className={category.color} />
+                                        <span className="text-dark-text text-sm">{category.label}</span>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                    </div>
                     <input
                         type="date"
                         value={newTaskDate}
                         onChange={(e) => setNewTaskDate(e.target.value)}
-                        className="input-field text-dark-text"
+                        className="input-field text-dark-text w-40 flex-shrink-0 h-10"
                     />
                     <button
                         type="submit"
                         disabled={adding}
-                        className="btn-primary flex items-center gap-2"
+                        className="btn-primary flex items-center gap-2 h-10 px-4 flex-shrink-0"
                     >
                         {adding ? (
                             <div className="spinner"></div>
                         ) : (
                             <>
                                 <Plus size={20} />
-                                Add
+                                Ajouter
                             </>
                         )}
                     </button>
@@ -241,9 +343,9 @@ export default function Dashboard({ session }) {
                                     <div
                                         key={task.id}
                                         className="flex items-center gap-3 p-3 bg-dark-surface rounded-lg hover:bg-dark-hover transition-colors cursor-pointer border border-dark-border"
-                                        onClick={() => toggleTask(task)}
+                                        onClick={() => openTaskModal(task)}
                                     >
-                                        <button className="flex-shrink-0">
+                                        <button className="flex-shrink-0" onClick={(e) => { e.stopPropagation(); toggleTask(task); }}>
                                             {task.is_done ? (
                                                 <CheckCircle2 size={20} className="text-green-500" />
                                             ) : (
@@ -256,12 +358,12 @@ export default function Dashboard({ session }) {
                                         {task.category === 'work' ? (
                                             <span className="flex items-center gap-1 text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full text-xs">
                                                 <Briefcase size={12} />
-                                                Work
+                                                Travail
                                             </span>
                                         ) : (
                                             <span className="flex items-center gap-1 text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full text-xs">
                                                 <User size={12} />
-                                                Personal
+                                                Personnel
                                             </span>
                                         )}
                                     </div>
@@ -280,7 +382,7 @@ export default function Dashboard({ session }) {
                                     <div
                                         key={task.id}
                                         className="flex items-center gap-3 p-3 bg-dark-surface rounded-lg hover:bg-dark-hover transition-colors cursor-pointer border border-dark-border"
-                                        onClick={() => toggleTask(task)}
+                                        onClick={() => openTaskModal(task)}
                                     >
                                         <button className="flex-shrink-0">
                                             {task.is_done ? (
@@ -337,7 +439,7 @@ export default function Dashboard({ session }) {
                         <div
                             key={task.id}
                             className="card flex items-center gap-4 hover:bg-dark-hover transition-colors cursor-pointer"
-                            onClick={() => toggleTask(task)}
+                            onClick={() => openTaskModal(task)}
                         >
                             <button className="flex-shrink-0">
                                 {task.is_done ? (
@@ -422,7 +524,7 @@ export default function Dashboard({ session }) {
                                                         onClick={() => setActiveMenu(null)}
                                                     >
                                                         <ExternalLink size={14} />
-                                                        Google Calendar
+                                                        Google Agenda
                                                     </a>
                                                     <button
                                                         onClick={() => {
@@ -432,7 +534,7 @@ export default function Dashboard({ session }) {
                                                         className="flex items-center gap-2 w-full px-4 py-2 text-sm text-dark-text hover:bg-dark-hover hover:text-dark-text transition-colors"
                                                     >
                                                         <Download size={14} />
-                                                        Download .ics
+                                                        Télécharger .ics
                                                     </button>
                                                     <div className="h-px bg-dark-border my-1"></div>
                                                 </>
@@ -446,7 +548,7 @@ export default function Dashboard({ session }) {
                                                 className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-colors"
                                             >
                                                 <Trash2 size={14} />
-                                                Delete Task
+                                                Supprimer la tâche
                                             </button>
                                         </div>
                                     )}
@@ -456,6 +558,16 @@ export default function Dashboard({ session }) {
                     ))}
                 </div>
             )}
+
+            {/* Task Details Modal */}
+            <TaskModal
+                task={selectedTask}
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onUpdate={handleUpdateTask}
+                onDelete={handleDeleteTask}
+            />
         </div>
     )
 }
+

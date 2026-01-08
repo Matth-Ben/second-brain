@@ -4,13 +4,17 @@ A modern, offline-first capability desktop productivity application built with R
 
 ## Features
 
-- **Task Management**: Create, organize, and track tasks with categories (Work/Personal). Export to Google Calendar or .ics.
+- **Task Management**: Create, organize, and track tasks with **7 categories** (Travail, Maison, Santé & Bien-être, Apprentissage, Finances, Social & Loisirs, Idées / Vrac). Export to Google Calendar or .ics.
+- **Enhanced Task Modal**: Editable title in header, custom completion toggle, category dropdown with icons and colors, and description field.
 - **Advanced Notes**: Rich text editor (Tiptap) with **syntax highlighting**, image support, and auto-save.
 - **Organization**: Pin your most important notes to favorites.
 - **Theming**: Beautiful **Light**, **Dark**, and **System** themes with a fully adaptive UI.
+- **French Interface**: Complete French translation throughout the application.
+- **Custom Scrollbars**: Elegant custom scrollbars matching the app's design.
+- **Responsive Design**: Optimized layout that adapts to different screen sizes.
 - **Auto-Updates**: Seamless background updates for the desktop application.
 - **Authentication**: Secure login and signup with Supabase.
-- **Cross-Platform**: Works on Windows and macOS.
+- **Cross-Platform**: Works on Windows, macOS, and Linux.
 
 ## Tech Stack
 
@@ -43,8 +47,9 @@ A modern, offline-first capability desktop productivity application built with R
      user_id uuid references auth.users not null,
      title text not null,
      is_done boolean default false,
-     category text check (category in ('work', 'personal')),
+     category text check (category in ('work', 'personal', 'home', 'health', 'learning', 'finance', 'social', 'ideas')),
      due_date date,
+     description text,
      created_at timestamp with time zone default timezone('utc'::text, now()) not null
    );
 
