@@ -1,5 +1,27 @@
 # Changelog
 
+## [1.3.0] - 2026-01-09
+
+### Added
+- **Mobile Support (Capacitor)**:
+  - Native Android support implemented using Capacitor 
+  - **Bottom Navigation Bar**: New mobile-specific navigation replacing the sidebar on small screens
+  - **Platform Detection**: Smart detection of Electron vs Mobile vs Web environments
+  - **Native Integration**: Status Bar styling and safe-area adaptation for notched devices
+  - **Mobile-Specific UI**: 
+    - Hidden TitleBar on mobile
+    - Adapted padding and layout for touch interfaces
+    - Disabled Electron-specific features (auto-updates) on mobile to prevent crashes
+
+### Technical
+- **Architecture**:
+  - Added `src/utils/platform.js` for centralized platform logic
+  - Integrated `MobileNav` component
+  - Configured `capacitor.config.ts` for secure Android scheme (`https`)
+- **Dependencies**:
+  - Added `@capacitor/core`, `@capacitor/android`, `@capacitor/ios`
+  - Added `@capacitor/status-bar`, `@capacitor/app`
+
 ## [1.2.0] - 2026-01-08
 
 ### Added

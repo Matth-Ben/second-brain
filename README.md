@@ -12,9 +12,10 @@ A modern, offline-first capability desktop productivity application built with R
 - **French Interface**: Complete French translation throughout the application.
 - **Custom Scrollbars**: Elegant custom scrollbars matching the app's design.
 - **Responsive Design**: Optimized layout that adapts to different screen sizes.
+- **Mobile Support (Beta)**: Native Android support via Capacitor with adaptive UI (Bottom Navigation, Safe Areas).
 - **Auto-Updates**: Seamless background updates for the desktop application.
 - **Authentication**: Secure login and signup with Supabase.
-- **Cross-Platform**: Works on Windows, macOS, and Linux.
+- **Cross-Platform**: Works on Windows, macOS, Linux, and Android.
 
 ## Tech Stack
 
@@ -106,6 +107,11 @@ npm run electron:dev
 **Build for production**:
 ```bash
 npm run electron:build
+```
+
+**Build for Android**:
+```bash
+npx cap open android
 ```
 
 ## Project Structure

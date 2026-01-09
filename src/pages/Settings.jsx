@@ -11,6 +11,8 @@ import {
     RefreshCw
 } from 'lucide-react'
 
+import { isElectron, isMobile } from '../utils/platform'
+
 export default function Settings({ session }) {
     const { theme, setTheme } = useTheme()
     const [activeTab, setActiveTab] = useState('appearance')
@@ -25,7 +27,7 @@ export default function Settings({ session }) {
     const [appVersion, setAppVersion] = useState('Loading...')
 
     useEffect(() => {
-        if (window.electronAPI) {
+        if (isElectron) {
             window.electronAPI.getAppVersion().then(version => {
                 setAppVersion(version)
             })
@@ -45,6 +47,11 @@ export default function Settings({ session }) {
                 cleanupNotAvailable()
                 cleanupError()
             }
+        } else if (isMobile) {
+            // TODO: Use @capacitor/app to get real version
+            setAppVersion('1.2.0 (Mobile)')
+        } else {
+            setAppVersion('1.2.0 (Web)')
         }
     }, [])
 
@@ -119,11 +126,11 @@ export default function Settings({ session }) {
     }
 
     const checkForUpdates = () => {
-        if (window.electronAPI) {
+        if (isElectron) {
             window.electronAPI.checkForUpdates() // Déclenche la vérification manuelle
             showNotification('success', 'Vérification en cours...')
         } else {
-            showNotification('error', 'Fonctionnalité disponible uniquement sur l\'application bureau.')
+            showNotification('info', 'Les mises à jour sont gérées par le store sur mobile.')
         }
     }
 

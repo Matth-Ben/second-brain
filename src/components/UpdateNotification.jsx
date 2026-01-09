@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Download, RefreshCw } from 'lucide-react'
+import { isElectron } from '../utils/platform'
 
 export default function UpdateNotification() {
     const [updateState, setUpdateState] = useState(null) // null | 'checking' | 'downloading' | 'ready'
@@ -8,8 +9,8 @@ export default function UpdateNotification() {
 
     useEffect(() => {
         console.log('UpdateNotification: mounted')
-        if (!window.electronAPI) {
-            console.error('UpdateNotification: electronAPI is missing')
+        if (!isElectron) {
+            console.log('UpdateNotification: not electron, skipping')
             return
         }
         console.log('UpdateNotification: electronAPI found')

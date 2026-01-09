@@ -1,7 +1,10 @@
 import { X, Minus, Square } from 'lucide-react'
 import Logo from './Logo'
+import { isElectron } from '../utils/platform'
 
 export default function TitleBar() {
+    if (!isElectron) return null
+
     const handleMinimize = () => {
         if (window.electronAPI) {
             window.electronAPI.minimize()
