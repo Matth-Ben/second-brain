@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
 import { Plus, FileText, Trash2, Star, ChevronLeft } from 'lucide-react'
+import { useIsMobile } from '../utils/platform'
 import Editor from '../components/Editor'
 
 const extractImageUrls = (html) => {
@@ -11,6 +12,7 @@ const extractImageUrls = (html) => {
 }
 
 export default function Notes({ session }) {
+    const isMobile = useIsMobile()
     const [notes, setNotes] = useState([])
     const [selectedNote, setSelectedNote] = useState(null)
     const [loading, setLoading] = useState(true)
@@ -25,7 +27,6 @@ export default function Notes({ session }) {
 
     const fetchNotes = async () => {
         try {
-
             const { data, error } = await supabase
                 .from('notes')
                 .select('*')
@@ -33,17 +34,34 @@ export default function Notes({ session }) {
                 .order('is_favorite', { ascending: false })
                 .order('updated_at', { ascending: false })
 
-            if (error) {
-
-                throw error
-            }
+            if (error) throw error
 
             setNotes(data || [])
+
+            // Handle initial selection logic
             if (data && data.length > 0) {
-                selectNote(data[0])
+                // Try to recover last opened note from localStorage
+                const lastOpenedId = localStorage.getItem('lastOpenedNoteId')
+                if (lastOpenedId) {
+                    const foundNote = data.find(n => n.id === lastOpenedId)
+                    if (foundNote) {
+                        selectNote(foundNote)
+                        return // Exit if we found and selected the persisted note
+                    }
+                }
+
+                // If it's desktop, we still want to select the first note by default if nothing was persisted
+                // On mobile, we prefer starting effectively on the list view (no selection) unless specific user intent
+                if (!isMobile) {
+                    selectNote(data[0])
+                } else {
+                    // On mobile, ensure we start with NO selection to show the list, 
+                    // UNLESS we successfully restored a session (handled above),
+                    // but here we didn't find the persisted note, so we stay on list.
+                    setSelectedNote(null)
+                }
             }
         } catch (error) {
-
             alert('Erreur lors du chargement des notes: ' + error.message)
         } finally {
             setLoading(false)
@@ -54,6 +72,7 @@ export default function Notes({ session }) {
         setSelectedNote(note)
         setTitle(note.title)
         setContent(note.content || '')
+        localStorage.setItem('lastOpenedNoteId', note.id)
     }
 
     const createNote = async () => {
@@ -71,7 +90,7 @@ export default function Notes({ session }) {
 
             if (error) throw error
             setNotes([data[0], ...notes])
-            selectNote(data[0])
+            selectNote(data[0]) // This now handles localStorage
         } catch (error) {
 
         }
@@ -219,7 +238,8 @@ export default function Notes({ session }) {
                 w-full md:w-64 border-r border-dark-border flex flex-col 
                 ${selectedNote ? 'hidden md:flex' : 'flex'}
             `}>
-                <div className="px-6 flex items-center h-20 text-xl font-bold border-b border-dark-border">
+                {/* Mobile Header for Notes List */}
+                <div className={`px-4 md:px-6 flex items-center h-16 md:h-20 text-xl font-bold border-b border-dark-border ${isMobile ? 'pt-[calc(0.5rem+env(safe-area-inset-top))]' : ''}`}>
                     Mes notes
                 </div>
                 <div className="flex-1 overflow-y-auto p-4 space-y-2">
@@ -250,7 +270,7 @@ export default function Notes({ session }) {
                         ))
                     )}
                 </div>
-                <div className="p-4 border-b border-dark-border">
+                <div className="p-4 md:border-b border-dark-border">
                     <button onClick={createNote} className="btn-primary w-full flex items-center justify-center gap-2">
                         <Plus size={20} />
                         Nouvelle note
@@ -261,42 +281,45 @@ export default function Notes({ session }) {
             <div className={`flex-1 flex flex-col ${!selectedNote ? 'hidden md:flex' : 'flex'}`}>
                 {selectedNote ? (
                     <>
-                        <div className="flex items-center h-20 px-4 md:px-6 border-b border-dark-border gap-2">
+                        <div className="flex items-center h-16 md:h-20 px-3 md:px-6 border-b border-dark-border gap-2">
                             <button
-                                onClick={() => setSelectedNote(null)}
-                                className="md:hidden p-2 text-dark-subtext hover:text-dark-text rounded-lg"
+                                onClick={() => {
+                                    setSelectedNote(null)
+                                    localStorage.removeItem('lastOpenedNoteId')
+                                }}
+                                className="md:hidden p-1.5 text-dark-subtext hover:text-dark-text rounded-lg flex-shrink-0"
                             >
-                                <ChevronLeft size={24} />
+                                <ChevronLeft size={20} />
                             </button>
                             <input
                                 type="text"
                                 value={title}
                                 onChange={(e) => setTitle(e.target.value)}
                                 onBlur={updateNote}
-                                className="flex-1 text-2xl font-bold bg-transparent border-none outline-none text-dark-text placeholder-dark-subtext min-w-0 mr-4"
+                                className="flex-1 text-lg md:text-2xl font-bold bg-transparent border-none outline-none text-dark-text placeholder-dark-subtext min-w-0 pr-2"
                                 placeholder="Titre de la note..."
                             />
                             <button
                                 onClick={toggleFavorite}
-                                className={`p-2 rounded-lg transition-colors mr-2 ${selectedNote.is_favorite
+                                className={`p-1.5 md:p-2 rounded-lg transition-colors flex-shrink-0 ${selectedNote.is_favorite
                                     ? 'text-yellow-400 hover:bg-yellow-400/10'
                                     : 'text-dark-subtext hover:text-yellow-400 hover:bg-yellow-400/10'
                                     }`}
                                 title={selectedNote.is_favorite ? "Retirer des favoris" : "Ajouter aux favoris"}
                             >
-                                <Star size={20} fill={selectedNote.is_favorite ? "currentColor" : "none"} />
+                                <Star size={18} fill={selectedNote.is_favorite ? "currentColor" : "none"} />
                             </button>
                             <button
                                 onClick={handleDeleteClick}
-                                className="p-2 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-colors"
+                                className="p-1.5 md:p-2 text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded-lg transition-colors flex-shrink-0"
                                 title="Supprimer la note"
                             >
-                                <Trash2 size={20} />
+                                <Trash2 size={18} />
                             </button>
 
                         </div>
 
-                        <div className="flex-1 flex flex-col min-h-0 bg-dark-bg">
+                        <div className="flex-1 flex flex-col min-h-0 bg-dark-bg w-full max-w-none">
                             {/* Editor Container */}
                             <Editor
                                 key={selectedNote.id}

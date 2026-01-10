@@ -82,7 +82,7 @@ export default function TaskModal({ task, isOpen, onClose, onUpdate, onDelete })
                         type="text"
                         value={editedTask.title}
                         onChange={(e) => setEditedTask({ ...editedTask, title: e.target.value })}
-                        className="text-2xl font-bold bg-transparent border-none outline-none text-dark-text flex-1 focus:ring-0"
+                        className="text-2xl md:text-2xl text-xl font-bold bg-transparent border-none outline-none text-dark-text flex-1 min-w-0 focus:ring-0 pr-2"
                         placeholder="Titre de la tâche"
                     />
                     <button
@@ -204,7 +204,7 @@ export default function TaskModal({ task, isOpen, onClose, onUpdate, onDelete })
                         className="flex items-center gap-2 px-4 py-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
                     >
                         <Trash2 size={18} />
-                        Supprimer
+                        <span className="hidden md:inline">Supprimer</span>
                     </button>
                     <div className="flex gap-3">
                         <button

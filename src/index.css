@@ -102,9 +102,38 @@
   }
 
   .card {
-    @apply bg-dark-surface border border-dark-border rounded-lg p-4;
+    @apply bg-dark-surface border border-dark-border rounded-lg p-4 overflow-hidden;
   }
 }
+
+/* Editor prose overflow prevention */
+.prose {
+  max-width: 100% !important;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  word-break: break-word;
+}
+
+.prose img {
+  max-width: 100%;
+  height: auto;
+}
+
+.prose pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.prose code {
+  word-break: break-all;
+}
+
+.prose table {
+  display: block;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 
 .spinner {
   border: 2px solid rgba(255, 255, 255, 0.1);

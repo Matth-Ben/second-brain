@@ -31,11 +31,11 @@ const MenuBar = ({ editor, onImageUpload, isUploading }) => {
     }
 
     return (
-        <div className="flex flex-wrap gap-1 p-2 border-b border-dark-border bg-dark-surface sticky top-0 z-10">
+        <div className="flex flex-wrap gap-1 p-2 border-b border-dark-border bg-dark-surface sticky top-0 z-10 max-w-full overflow-x-auto">
             <button
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 disabled={!editor.can().chain().focus().toggleBold().run()}
-                className={`p-1.5 rounded transition-colors ${editor.isActive('bold') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
+                className={`p-1.5 rounded transition-colors flex-shrink-0 ${editor.isActive('bold') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Bold"
             >
                 <Bold size={16} />
@@ -43,7 +43,7 @@ const MenuBar = ({ editor, onImageUpload, isUploading }) => {
             <button
                 onClick={() => editor.chain().focus().toggleItalic().run()}
                 disabled={!editor.can().chain().focus().toggleItalic().run()}
-                className={`p-1.5 rounded transition-colors ${editor.isActive('italic') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
+                className={`p-1.5 rounded transition-colors flex-shrink-0 ${editor.isActive('italic') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Italic"
             >
                 <Italic size={16} />
@@ -51,65 +51,65 @@ const MenuBar = ({ editor, onImageUpload, isUploading }) => {
             <button
                 onClick={() => editor.chain().focus().toggleStrike().run()}
                 disabled={!editor.can().chain().focus().toggleStrike().run()}
-                className={`p-1.5 rounded transition-colors ${editor.isActive('strike') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
+                className={`p-1.5 rounded transition-colors flex-shrink-0 ${editor.isActive('strike') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Strike"
             >
                 <Strikethrough size={16} />
             </button>
 
-            <div className="w-px bg-dark-border mx-1 self-stretch"></div>
+            <div className="w-px bg-dark-border mx-1 self-stretch hidden md:block"></div>
 
             <button
                 onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()}
-                className={`p-1.5 rounded transition-colors ${editor.isActive('heading', { level: 1 }) ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
+                className={`p-1.5 rounded transition-colors flex-shrink-0 ${editor.isActive('heading', { level: 1 }) ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Heading 1"
             >
                 <Heading1 size={16} />
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
-                className={`p-1.5 rounded transition-colors ${editor.isActive('heading', { level: 2 }) ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
+                className={`p-1.5 rounded transition-colors flex-shrink-0 ${editor.isActive('heading', { level: 2 }) ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Heading 2"
             >
                 <Heading2 size={16} />
             </button>
 
-            <div className="w-px bg-dark-border mx-1 self-stretch"></div>
+            <div className="w-px bg-dark-border mx-1 self-stretch hidden md:block"></div>
 
             <button
                 onClick={() => editor.chain().focus().toggleBulletList().run()}
-                className={`p-1.5 rounded transition-colors ${editor.isActive('bulletList') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
+                className={`p-1.5 rounded transition-colors flex-shrink-0 ${editor.isActive('bulletList') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Bullet List"
             >
                 <List size={16} />
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleOrderedList().run()}
-                className={`p-1.5 rounded transition-colors ${editor.isActive('orderedList') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
+                className={`p-1.5 rounded transition-colors flex-shrink-0 ${editor.isActive('orderedList') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Ordered List"
             >
                 <ListOrdered size={16} />
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleTaskList().run()}
-                className={`p-1.5 rounded transition-colors ${editor.isActive('taskList') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
+                className={`p-1.5 rounded transition-colors flex-shrink-0 ${editor.isActive('taskList') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Task List"
             >
                 <CheckSquare size={16} />
             </button>
 
-            <div className="w-px bg-dark-border mx-1 self-stretch"></div>
+            <div className="w-px bg-dark-border mx-1 self-stretch hidden md:block"></div>
 
             <button
                 onClick={() => editor.chain().focus().toggleBlockquote().run()}
-                className={`p-1.5 rounded transition-colors ${editor.isActive('blockquote') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
+                className={`p-1.5 rounded transition-colors flex-shrink-0 ${editor.isActive('blockquote') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Quote"
             >
                 <Quote size={16} />
             </button>
             <button
                 onClick={() => editor.chain().focus().toggleCodeBlock().run()}
-                className={`p-1.5 rounded transition-colors ${editor.isActive('codeBlock') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
+                className={`p-1.5 rounded transition-colors flex-shrink-0 ${editor.isActive('codeBlock') ? 'bg-blue-600 text-white' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Code Block"
             >
                 <Code size={16} />
@@ -117,7 +117,7 @@ const MenuBar = ({ editor, onImageUpload, isUploading }) => {
             <button
                 onClick={onImageUpload}
                 disabled={isUploading}
-                className={`p-1.5 rounded transition-colors ${isUploading ? 'text-gray-500 cursor-not-allowed' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
+                className={`p-1.5 rounded transition-colors flex-shrink-0 ${isUploading ? 'text-gray-500 cursor-not-allowed' : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'}`}
                 title="Add Image"
             >
                 {isUploading ? (
@@ -206,7 +206,7 @@ export default function Editor({ content, onChange, onBlur, userId }) {
         content: content,
         editorProps: {
             attributes: {
-                class: 'prose dark:prose-invert max-w-none focus:outline-none min-h-[200px] text-dark-text',
+                class: 'prose dark:prose-invert max-w-none focus:outline-none min-h-[200px] text-dark-text overflow-x-hidden break-words',
             },
             handleDrop: (view, event, slice, moved) => {
                 if (!moved && event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files[0]) {
@@ -243,7 +243,7 @@ export default function Editor({ content, onChange, onBlur, userId }) {
     })
 
     return (
-        <div className="flex flex-col h-full bg-transparent">
+        <div className="flex flex-col h-full bg-transparent w-full max-w-full overflow-hidden">
             <input
                 type="file"
                 ref={fileInputRef}
@@ -256,8 +256,8 @@ export default function Editor({ content, onChange, onBlur, userId }) {
                 onImageUpload={() => fileInputRef.current?.click()}
                 isUploading={isUploading}
             />
-            <div className="flex-1 overflow-y-auto p-4">
-                <EditorContent editor={editor} className="h-full" />
+            <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 max-w-full">
+                <EditorContent editor={editor} className="h-full max-w-full" />
             </div>
         </div>
     )

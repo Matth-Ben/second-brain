@@ -1,7 +1,7 @@
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { StatusBar, Style } from '@capacitor/status-bar'
-import { isMobile } from './utils/platform'
+import { useIsMobile, isNativeMobile } from './utils/platform'
 import { supabase } from './supabaseClient'
 import Auth from './pages/Auth'
 import Dashboard from './pages/Dashboard'
@@ -14,6 +14,7 @@ import TitleBar from './components/TitleBar'
 import UpdateNotification from './components/UpdateNotification'
 
 function App() {
+    const isMobile = useIsMobile()
     const [session, setSession] = useState(null)
     const [loading, setLoading] = useState(true)
 
@@ -33,7 +34,7 @@ function App() {
     }, [])
 
     useEffect(() => {
-        if (isMobile) {
+        if (isNativeMobile) {
             StatusBar.setStyle({ style: Style.Dark })
             StatusBar.setBackgroundColor({ color: '#0a0a0a' })
         }
@@ -59,7 +60,7 @@ function App() {
                     <div className="hidden md:block h-full">
                         <Sidebar />
                     </div>
-                    <main className="flex-1 overflow-auto w-full pb-20 md:pb-0">
+                    <main className="flex-1 overflow-auto w-full pb-24 md:pb-0">
                         <Routes>
                             <Route path="/" element={<Navigate to="/dashboard" replace />} />
                             <Route path="/dashboard" element={<Dashboard session={session} />} />
