@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.4.0] - 2026-01-11
+
+### Added
+- **Planning Calendar Redesign**:
+  - **Apple Calendar Style**: Complete visual overhaul inspired by Apple Calendar
+  - **Month/Week Switch**: New toggle to switch between Month and Week views
+  - **Week View**: Vertical list of the current week's days with tasks
+  - **Inline Task Creation**: Click on "Nouvelle tâche" in any day (month or week view) to create a task for that specific date immediately
+  - **Responsive Design**: Mobile-friendly interface with simplified views and touch-optimized controls
+  - **Day Detail View**: 
+    - **Side Panel (Desktop)**: Clicking a day opens a side panel with details without losing context
+    - **Full Screen (Mobile)**: Clicking a day opens a focused full-screen view
+  - **Task Counts**: Visual indicators for the number of tasks per day
+
+### Improved
+- **Mobile Experience**:
+  - Better touch targets for navigation and task management
+  - Simplified calendar cells on mobile (initials only)
+  - Bottom navigation bar integration
+- **User Interface**:
+  - "No tasks" empty states replaced with actionable "Add Task" buttons
+  - Consistent styling with the rest of the application
+
 ## [1.3.0] - 2026-01-09
 
 ### Added
