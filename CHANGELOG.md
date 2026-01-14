@@ -1,5 +1,21 @@
 # Changelog
 
+## [1.4.1] - 2026-01-15
+
+### Removed
+- **Speech Recognition Feature**:
+  - Completely removed voice dictation from Quick Capture and Editor due to Electron compatibility issues and persistent errors.
+  - Removed "Voice" mode from Quick Capture (only "Note" and "Task" modes remain).
+  - Removed microphone button from Editor toolbar.
+  - Removed related global shortcut `Ctrl+Shift+D`.
+
+### Fixed
+- **Application Stability**:
+  - Resolved `ReferenceError: speechError is not defined` and `ReferenceError: onMicToggle is not defined` which caused the application to crash.
+  - Removed unused dependencies (`@xenova/transformers`, `vosk`, `fluent-ffmpeg`) to reduce build size and complexity.
+  - Cleaned up `vite.config.js` and removed `whisper.worker.js`.
+
+
 ## [1.4.0] - 2026-01-11
 
 ### Added
