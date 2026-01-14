@@ -1,6 +1,47 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
 
 /**
+ * Process voice commands and convert them to Markdown formatting
+ * @param {string} text - The transcribed text
+ * @returns {string} - Text with commands replaced by Markdown
+ */
+const processVoiceCommands = (text) => {
+    if (!text) return text
+
+    let processedText = text
+
+    // Define command patterns (case insensitive)
+    // Order matters: process more specific commands first
+    const commandPatterns = [
+        // Headings (must come before "titre" alone)
+        { pattern: /\b(titre un|titre 1)\b/gi, replacement: '\n# ' },
+        { pattern: /\b(titre deux|titre 2)\b/gi, replacement: '\n## ' },
+        { pattern: /\b(titre trois|titre 3)\b/gi, replacement: '\n### ' },
+
+        // Lists (specific before general)
+        { pattern: /\b(liste numérotée|numéro)\b/gi, replacement: '\n1. ' },
+        { pattern: /\b(checklist|case à cocher|tâche)\b/gi, replacement: '\n- [ ] ' },
+        { pattern: /\b(liste|puce)\b/gi, replacement: '\n- ' },
+
+        // Line breaks
+        { pattern: /\b(nouvelle ligne|retour à la ligne)\b/gi, replacement: '\n' },
+        { pattern: /\bparagraphe\b/gi, replacement: '\n\n' },
+    ]
+
+    // Process each command pattern
+    commandPatterns.forEach(({ pattern, replacement }) => {
+        processedText = processedText.replace(pattern, replacement)
+    })
+
+    // Capitalize first letter after headings
+    processedText = processedText.replace(/(\n#{1,3}\s+)(\w)/g, (match, prefix, letter) => {
+        return prefix + letter.toUpperCase()
+    })
+
+    return processedText
+}
+
+/**
  * Custom hook for Speech-to-Text using Web Speech API
  * @param {string} language - Language code (default: 'fr-FR')
  * @returns {Object} - { isListening, transcript, interimTranscript, error, startListening, stopListening, resetTranscript }
@@ -33,26 +74,26 @@ export default function useSpeechToText(language = 'fr-FR') {
 
         // Handle results
         recognition.onresult = (event) => {
-            let interimText = ''
-            let finalText = ''
+            let allFinalText = ''
+            let currentInterimText = ''
 
-            for (let i = event.resultIndex; i < event.results.length; i++) {
+            // Process ALL results from the beginning to get complete transcript
+            for (let i = 0; i < event.results.length; i++) {
                 const transcriptPiece = event.results[i][0].transcript
                 if (event.results[i].isFinal) {
-                    finalText += transcriptPiece + ' '
+                    allFinalText += transcriptPiece + ' '
                 } else {
-                    interimText += transcriptPiece
+                    currentInterimText += transcriptPiece
                 }
             }
 
-            // Update interim transcript for real-time display
-            setInterimTranscript(interimText)
-
-            // Update final transcript (accumulated)
-            if (finalText) {
-                setTranscript(prev => prev + finalText)
-                setInterimTranscript('') // Clear interim when we get final result
+            // Update final transcript (this contains all finalized text)
+            if (allFinalText) {
+                setTranscript(allFinalText)
             }
+
+            // Update interim transcript for real-time display
+            setInterimTranscript(currentInterimText)
         }
 
         // Handle errors

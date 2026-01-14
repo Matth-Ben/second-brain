@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, ipcMain, systemPreferences } from 'electron'
+import { app, BrowserWindow, Menu, ipcMain, systemPreferences, globalShortcut } from 'electron'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { createRequire } from 'module'
@@ -10,6 +10,62 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 let mainWindow
+let quickEntryWindow = null
+
+function openQuickEntryWindow(mode) {
+    // Si la fenêtre existe déjà, la focus
+    if (quickEntryWindow && !quickEntryWindow.isDestroyed()) {
+        quickEntryWindow.focus()
+        return
+    }
+
+    // Créer la nouvelle fenêtre
+    const windowHeight = mode === 'task' ? 400 : 600 // Plus grand pour les notes
+    quickEntryWindow = new BrowserWindow({
+        width: 600,
+        height: windowHeight,
+        frame: false,
+        alwaysOnTop: true,
+        resizable: false,
+        skipTaskbar: true,
+        backgroundColor: '#0a0a0a',
+        webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true,
+            preload: path.join(__dirname, 'preload.cjs'),
+        }
+    })
+
+    // Construire l'URL selon le mode
+    let url = `http://localhost:5173/#/quick-entry?mode=${mode}`
+
+    if (mode === 'voice') {
+        url += '&autoRecord=true'
+    }
+
+    console.log('Loading Quick Entry:', url)
+    quickEntryWindow.loadURL(url)
+
+    // Gérer les permissions pour la reconnaissance vocale
+    quickEntryWindow.webContents.session.setPermissionRequestHandler((webContents, permission, callback) => {
+        const allowedPermissions = ['media', 'microphone', 'audioCapture']
+        if (allowedPermissions.includes(permission)) {
+            callback(true) // Autoriser
+        } else {
+            callback(false)
+        }
+    })
+
+    // Ouvrir DevTools pour déboguer (à retirer en production)
+    if (process.env.NODE_ENV === 'development') {
+        quickEntryWindow.webContents.openDevTools({ mode: 'detach' })
+    }
+
+    // Nettoyer la référence à la fermeture
+    quickEntryWindow.on('closed', () => {
+        quickEntryWindow = null
+    })
+}
 
 function createWindow() {
     // Cacher le menu par défaut
@@ -180,6 +236,20 @@ app.whenReady().then(async () => {
 
     createWindow()
 
+    // Enregistrer les raccourcis globaux pour Quick Capture
+    globalShortcut.register('CommandOrControl+Shift+T', () => {
+        console.log('Quick Capture: Task')
+        openQuickEntryWindow('task')
+    })
+
+    globalShortcut.register('CommandOrControl+Shift+N', () => {
+        console.log('Quick Capture: Note')
+        openQuickEntryWindow('note')
+    })
+
+
+
+
     app.on('activate', () => {
         if (BrowserWindow.getAllWindows().length === 0) {
             createWindow()
@@ -191,4 +261,9 @@ app.on('window-all-closed', () => {
     if (process.platform !== 'darwin') {
         app.quit()
     }
+})
+
+// Nettoyer les raccourcis globaux à la fermeture
+app.on('will-quit', () => {
+    globalShortcut.unregisterAll()
 })

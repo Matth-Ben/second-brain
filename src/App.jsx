@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard'
 import Notes from './pages/Notes'
 import Planning from './pages/Planning'
 import Settings from './pages/Settings'
+import QuickEntry from './pages/QuickEntry'
 import Sidebar from './components/Sidebar'
 import MobileNav from './components/MobileNav'
 import TitleBar from './components/TitleBar'
@@ -54,27 +55,35 @@ function App() {
 
     return (
         <HashRouter>
-            <div className="flex flex-col h-screen bg-dark-bg">
-                <TitleBar />
-                <div className="flex flex-1 overflow-hidden relative">
-                    <div className="hidden md:block h-full">
-                        <Sidebar />
+            <Routes>
+                {/* Route Quick Entry sans layout */}
+                <Route path="/quick-entry" element={<QuickEntry />} />
+
+                {/* Routes normales avec layout */}
+                <Route path="/*" element={
+                    <div className="flex flex-col h-screen bg-dark-bg">
+                        <TitleBar />
+                        <div className="flex flex-1 overflow-hidden relative">
+                            <div className="hidden md:block h-full">
+                                <Sidebar />
+                            </div>
+                            <main className="flex-1 overflow-auto w-full pb-24 md:pb-0">
+                                <Routes>
+                                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
+                                    <Route path="/dashboard" element={<Dashboard session={session} />} />
+                                    <Route path="/notes" element={<Notes session={session} />} />
+                                    <Route path="/planning" element={<Planning session={session} />} />
+                                    <Route path="/settings" element={<Settings session={session} />} />
+                                    <Route path="*" element={<Navigate to="/dashboard" replace />} />
+                                </Routes>
+                            </main>
+                            <div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
+                                <MobileNav />
+                            </div>
+                        </div>
                     </div>
-                    <main className="flex-1 overflow-auto w-full pb-24 md:pb-0">
-                        <Routes>
-                            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-                            <Route path="/dashboard" element={<Dashboard session={session} />} />
-                            <Route path="/notes" element={<Notes session={session} />} />
-                            <Route path="/planning" element={<Planning session={session} />} />
-                            <Route path="/settings" element={<Settings session={session} />} />
-                            <Route path="*" element={<Navigate to="/dashboard" replace />} />
-                        </Routes>
-                    </main>
-                    <div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
-                        <MobileNav />
-                    </div>
-                </div>
-            </div>
+                } />
+            </Routes>
             <UpdateNotification />
         </HashRouter>
     )

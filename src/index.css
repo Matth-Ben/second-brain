@@ -2,6 +2,16 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Electron window dragging */
+.drag {
+    -webkit-app-region: drag;
+}
+
+.no-drag {
+    -webkit-app-region: no-drag;
+}
+
+
 @layer base {
   :root {
     --bg-primary: #ffffff;

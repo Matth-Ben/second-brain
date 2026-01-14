@@ -67,6 +67,19 @@ export default function Planning({ session }) {
         setCurrentDate(new Date(year, month + 1, 1))
     }
 
+    // Navigate weeks
+    const previousWeek = () => {
+        const newDate = new Date(currentDate)
+        newDate.setDate(newDate.getDate() - 7)
+        setCurrentDate(newDate)
+    }
+
+    const nextWeek = () => {
+        const newDate = new Date(currentDate)
+        newDate.setDate(newDate.getDate() + 7)
+        setCurrentDate(newDate)
+    }
+
     const goToToday = () => {
         setCurrentDate(new Date())
     }
@@ -516,13 +529,13 @@ export default function Planning({ session }) {
                                                 Aujourd'hui
                                             </button>
                                             <button
-                                                onClick={previousMonth}
+                                                onClick={viewMode === 'week' ? previousWeek : previousMonth}
                                                 className="p-2 hover:bg-dark-hover rounded-lg transition-colors text-dark-text"
                                             >
                                                 <ChevronLeft size={20} />
                                             </button>
                                             <button
-                                                onClick={nextMonth}
+                                                onClick={viewMode === 'week' ? nextWeek : nextMonth}
                                                 className="p-2 hover:bg-dark-hover rounded-lg transition-colors text-dark-text"
                                             >
                                                 <ChevronRight size={20} />
