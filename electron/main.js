@@ -1,4 +1,4 @@
-import { app, BrowserWindow, Menu, ipcMain } from 'electron'
+import { app, BrowserWindow, Menu, ipcMain, systemPreferences } from 'electron'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { createRequire } from 'module'
@@ -163,7 +163,21 @@ ipcMain.handle('get-app-version', () => {
     return app.getVersion()
 })
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+    // Request microphone permission on macOS
+    if (process.platform === 'darwin') {
+        try {
+            const microphoneStatus = systemPreferences.getMediaAccessStatus('microphone')
+            console.log('Microphone access status:', microphoneStatus)
+
+            if (microphoneStatus !== 'granted') {
+                await systemPreferences.askForMediaAccess('microphone')
+            }
+        } catch (error) {
+            console.error('Error requesting microphone access:', error)
+        }
+    }
+
     createWindow()
 
     app.on('activate', () => {

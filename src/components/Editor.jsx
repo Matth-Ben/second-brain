@@ -8,7 +8,8 @@ import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import { common, createLowlight } from 'lowlight'
 import { supabase } from '../supabaseClient'
 import { v4 as uuidv4 } from 'uuid'
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
+import useSpeechToText from '../hooks/useSpeechToText'
 import {
     Bold,
     Italic,
@@ -20,12 +21,13 @@ import {
     Heading2,
     Quote,
     Image as ImageIcon,
-    CheckSquare
+    CheckSquare,
+    Mic
 } from 'lucide-react'
 
 const lowlight = createLowlight(common)
 
-const MenuBar = ({ editor, onImageUpload, isUploading }) => {
+const MenuBar = ({ editor, onImageUpload, isUploading, onMicToggle, isRecording }) => {
     if (!editor) {
         return null
     }
@@ -126,6 +128,19 @@ const MenuBar = ({ editor, onImageUpload, isUploading }) => {
                     <ImageIcon size={16} />
                 )}
             </button>
+
+            <div className="w-px bg-dark-border mx-1 self-stretch hidden md:block"></div>
+
+            <button
+                onClick={onMicToggle}
+                className={`p-1.5 rounded transition-colors flex-shrink-0 ${isRecording
+                    ? 'bg-red-600 text-white animate-pulse'
+                    : 'text-dark-subtext hover:bg-dark-hover hover:text-dark-text'
+                    }`}
+                title={isRecording ? "Arrêter la dictée" : "Démarrer la dictée vocale"}
+            >
+                <Mic size={16} />
+            </button>
         </div>
     )
 }
@@ -134,6 +149,13 @@ export default function Editor({ content, onChange, onBlur, userId }) {
     const fileInputRef = useRef(null)
     const [isUploading, setIsUploading] = useState(false)
     const [, forceUpdate] = useState(0)
+    const [showError, setShowError] = useState(null)
+
+    // Speech-to-Text hook
+    const { isListening, transcript, interimTranscript, error: speechError, startListening, stopListening } = useSpeechToText('fr-FR')
+    const editorRef = useRef(null)
+    const lastTranscriptRef = useRef('')
+    const lastInterimRef = useRef('')
 
     const uploadImage = async (file) => {
         if (!file || !userId) return
@@ -242,6 +264,59 @@ export default function Editor({ content, onChange, onBlur, userId }) {
         },
     })
 
+    // Store editor reference
+    useEffect(() => {
+        if (editor) {
+            editorRef.current = editor
+        }
+    }, [editor])
+
+    // Handle speech recognition errors
+    useEffect(() => {
+        if (speechError) {
+            setShowError(speechError)
+            // Auto-hide error after 5 seconds
+            const timer = setTimeout(() => setShowError(null), 5000)
+            return () => clearTimeout(timer)
+        }
+    }, [speechError])
+
+    // Insert transcript into editor in real-time
+    useEffect(() => {
+        if (!editorRef.current) return
+
+        const editor = editorRef.current
+        const fullText = transcript + interimTranscript
+        const lastFullText = lastTranscriptRef.current + lastInterimRef.current
+
+        // Only update if there's new text
+        if (fullText !== lastFullText) {
+            // Calculate what text to add
+            const newText = fullText.substring(lastFullText.length)
+
+            if (newText) {
+                // Insert new text at cursor position
+                editor.chain().focus().insertContent(newText).run()
+            }
+        }
+
+        // Update refs
+        lastTranscriptRef.current = transcript
+        lastInterimRef.current = interimTranscript
+    }, [transcript, interimTranscript])
+
+    // Handle microphone toggle
+    const handleMicToggle = () => {
+        if (isListening) {
+            stopListening()
+        } else {
+            // Reset refs when starting new recording
+            lastTranscriptRef.current = ''
+            lastInterimRef.current = ''
+            startListening()
+        }
+    }
+
     return (
         <div className="flex flex-col h-full bg-transparent w-full max-w-full overflow-hidden">
             <input
@@ -255,7 +330,14 @@ export default function Editor({ content, onChange, onBlur, userId }) {
                 editor={editor}
                 onImageUpload={() => fileInputRef.current?.click()}
                 isUploading={isUploading}
+                onMicToggle={handleMicToggle}
+                isRecording={isListening}
             />
+            {showError && (
+                <div className="bg-red-500/10 border border-red-500/50 text-red-400 px-4 py-2 text-sm">
+                    {showError}
+                </div>
+            )}
             <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 max-w-full">
                 <EditorContent editor={editor} className="h-full max-w-full" />
             </div>
