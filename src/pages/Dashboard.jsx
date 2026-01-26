@@ -4,17 +4,26 @@ import { Plus, CheckCircle2, Circle, Briefcase, User, Calendar as CalendarIcon, 
 import { generateGoogleCalendarUrl, downloadIcsFile } from '../utils/calendar'
 import { useIsMobile } from '../utils/platform'
 import TaskModal from '../components/TaskModal'
+import ConfirmationModal from '../components/ConfirmationModal'
+import Confetti from '../components/Confetti'
+import CelebrationModal from '../components/CelebrationModal'
 
 // Categories configuration (same as TaskModal)
 const CATEGORIES = [
-    { value: 'work', label: 'Travail', icon: Briefcase, color: 'text-blue-400' },
-    { value: 'home', label: 'Maison', icon: Home, color: 'text-orange-400' },
-    { value: 'health', label: 'Santé & Bien-être', icon: Heart, color: 'text-red-400' },
-    { value: 'learning', label: 'Apprentissage', icon: GraduationCap, color: 'text-green-400' },
-    { value: 'finance', label: 'Finances', icon: DollarSign, color: 'text-yellow-400' },
-    { value: 'social', label: 'Social & Loisirs', icon: PartyPopper, color: 'text-pink-400' },
-    { value: 'ideas', label: 'Idées / Vrac', icon: Lightbulb, color: 'text-purple-400' },
+    { value: 'work', label: 'Travail', icon: Briefcase, color: 'text-blue-400', bgColor: 'bg-blue-500/10' },
+    { value: 'home', label: 'Maison', icon: Home, color: 'text-orange-400', bgColor: 'bg-orange-500/10' },
+    { value: 'health', label: 'Santé & Bien-être', icon: Heart, color: 'text-red-400', bgColor: 'bg-red-500/10' },
+    { value: 'learning', label: 'Apprentissage', icon: GraduationCap, color: 'text-green-400', bgColor: 'bg-green-500/10' },
+    { value: 'finance', label: 'Finances', icon: DollarSign, color: 'text-yellow-400', bgColor: 'bg-yellow-500/10' },
+    { value: 'social', label: 'Social & Loisirs', icon: PartyPopper, color: 'text-pink-400', bgColor: 'bg-pink-500/10' },
+    { value: 'ideas', label: 'Idées / Vrac', icon: Lightbulb, color: 'text-purple-400', bgColor: 'bg-purple-500/10' },
 ]
+
+// Helper function to get category info
+const getCategoryInfo = (categoryValue) => {
+    return CATEGORIES.find(cat => cat.value === categoryValue) || CATEGORIES[0]
+}
+
 
 export default function Dashboard({ session }) {
     const isMobile = useIsMobile()
@@ -27,12 +36,26 @@ export default function Dashboard({ session }) {
     const [activeMenu, setActiveMenu] = useState(null)
     const [selectedTask, setSelectedTask] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
+    const [taskToDelete, setTaskToDelete] = useState(null)
+    const [animatingTasks, setAnimatingTasks] = useState(new Set())
+    const [confettiTasks, setConfettiTasks] = useState(new Set())
+    const [showCelebration, setShowCelebration] = useState(false)
+    const [celebrationShown, setCelebrationShown] = useState(false)
 
     // Close menu when clicking outside
     useEffect(() => {
         const handleClickOutside = (event) => {
-            // Close task menu
-            setActiveMenu(null)
+            // Check if clicking outside the active task menu
+            if (activeMenu !== null) {
+                const menuElement = event.target.closest('.task-menu-dropdown')
+                const menuButton = event.target.closest('[data-menu-trigger]')
+
+                // Only close if clicking outside both the menu and its trigger button
+                if (!menuElement && !menuButton) {
+                    setActiveMenu(null)
+                }
+            }
 
             // Close category dropdown
             const dropdown = document.getElementById('new-task-category-dropdown')
@@ -53,6 +76,40 @@ export default function Dashboard({ session }) {
     useEffect(() => {
         fetchTasks()
     }, [])
+
+    // Check if all daily tasks are completed
+    useEffect(() => {
+        const today = new Date()
+        const todayDate = today.toISOString().split('T')[0]
+
+        const todayTasks = tasks.filter(task => {
+            if (!task.due_date) return false
+            const taskDate = task.due_date.split('T')[0]
+            return taskDate === todayDate
+        })
+        const tasksWithoutDate = tasks.filter(task => !task.due_date)
+        const allDailyTasks = [...todayTasks, ...tasksWithoutDate]
+
+        // Only show celebration if there are tasks and all are done
+        if (allDailyTasks.length > 0) {
+            const allCompleted = allDailyTasks.every(task => task.is_done)
+
+            // Show celebration only once when all tasks become completed
+            if (allCompleted && !celebrationShown) {
+                // Small delay to let the last task animation finish
+                setTimeout(() => {
+                    setShowCelebration(true)
+                    setCelebrationShown(true)
+                }, 800)
+            }
+
+            // Reset celebration flag if tasks become uncompleted
+            if (!allCompleted && celebrationShown) {
+                setCelebrationShown(false)
+                setShowCelebration(false)
+            }
+        }
+    }, [tasks, celebrationShown])
 
     const fetchTasks = async () => {
         try {
@@ -129,9 +186,7 @@ export default function Dashboard({ session }) {
     }
 
 
-    const deleteTask = async (taskId) => {
-        if (!confirm('Are you sure you want to delete this task?')) return
-
+    const rawDeleteTask = async (taskId) => {
         console.log('Attempting delete for task:', taskId)
         console.log('Current user:', session.user.id)
 
@@ -147,17 +202,63 @@ export default function Dashboard({ session }) {
             // This usually happens if RLS (security policy) prevents you from touching this row
             if (count === 0) {
                 alert('Impossible de supprimer : Vous n\'avez pas la permission ou la tâche n\'existe plus (Problème de politique RLS ?)')
-                return
+                return false
             }
 
             setTasks(tasks.filter((t) => t.id !== taskId))
+            return true
         } catch (error) {
             console.error('Error deleting task:', error)
             alert('Erreur lors de la suppression: ' + error.message)
+            return false
         }
     }
 
+    const executeDeleteTask = async () => {
+        if (!taskToDelete) return
+
+        const success = await rawDeleteTask(taskToDelete)
+
+        if (success) {
+            setIsDeleteConfirmOpen(false)
+            setTaskToDelete(null)
+        }
+    }
+
+    const confirmDeleteTask = (taskId) => {
+        setTaskToDelete(taskId)
+        setIsDeleteConfirmOpen(true)
+    }
+
     const toggleTask = async (task) => {
+        const willBeCompleted = !task.is_done
+
+        // Add animation
+        setAnimatingTasks(prev => new Set(prev).add(task.id))
+
+        // Add confetti only when completing a task
+        if (willBeCompleted) {
+            setConfettiTasks(prev => new Set(prev).add(task.id))
+
+            // Remove confetti after animation
+            setTimeout(() => {
+                setConfettiTasks(prev => {
+                    const next = new Set(prev)
+                    next.delete(task.id)
+                    return next
+                })
+            }, 1500)
+        }
+
+        // Remove animation after it completes
+        setTimeout(() => {
+            setAnimatingTasks(prev => {
+                const next = new Set(prev)
+                next.delete(task.id)
+                return next
+            })
+        }, 300)
+
         try {
             const { error } = await supabase
                 .from('tasks')
@@ -205,7 +306,7 @@ export default function Dashboard({ session }) {
     }
 
     const handleDeleteTask = async (taskId) => {
-        await deleteTask(taskId)
+        confirmDeleteTask(taskId)
     }
 
 
@@ -238,6 +339,8 @@ export default function Dashboard({ session }) {
         const taskDate = task.due_date.split('T')[0]
         return taskDate !== todayDate // Exclude today's tasks
     })
+
+
 
 
     return (
@@ -352,12 +455,13 @@ export default function Dashboard({ session }) {
                                         {todayTasks.map((task) => (
                                             <div
                                                 key={task.id}
-                                                className="flex items-center gap-3 p-3 bg-dark-surface rounded-lg hover:bg-dark-hover transition-colors cursor-pointer border border-dark-border mb-2 md:mb-0"
+                                                className={`relative flex items-center gap-3 p-3 bg-dark-surface rounded-lg hover:bg-dark-hover transition-colors cursor-pointer border border-dark-border mb-2 md:mb-0 ${animatingTasks.has(task.id) ? 'animate-task-complete' : ''}`}
                                                 onClick={() => openTaskModal(task)}
                                             >
+                                                {confettiTasks.has(task.id) && <Confetti taskId={task.id} />}
                                                 <button className="flex-shrink-0" onClick={(e) => { e.stopPropagation(); toggleTask(task); }}>
                                                     {task.is_done ? (
-                                                        <CheckCircle2 size={20} className="text-green-500" />
+                                                        <CheckCircle2 size={20} className={`text-green-500 ${animatingTasks.has(task.id) ? 'animate-checkmark-pop' : ''}`} />
                                                     ) : (
                                                         <Circle size={20} className="text-dark-subtext" />
                                                     )}
@@ -365,17 +469,16 @@ export default function Dashboard({ session }) {
                                                 <p className={`flex-1 text-sm min-w-0 break-words ${task.is_done ? 'line-through text-dark-subtext' : 'text-dark-text'}`}>
                                                     {task.title}
                                                 </p>
-                                                {task.category === 'work' ? (
-                                                    <span className="flex items-center gap-1 text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full text-xs">
-                                                        <Briefcase size={12} />
-                                                        Travail
-                                                    </span>
-                                                ) : (
-                                                    <span className="flex items-center gap-1 text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full text-xs">
-                                                        <User size={12} />
-                                                        Personnel
-                                                    </span>
-                                                )}
+                                                {(() => {
+                                                    const category = getCategoryInfo(task.category)
+                                                    const Icon = category.icon
+                                                    return (
+                                                        <span className={`flex items-center gap-1 ${category.color} ${category.bgColor} px-2 py-0.5 rounded-full text-xs`}>
+                                                            <Icon size={12} />
+                                                            {category.label}
+                                                        </span>
+                                                    )
+                                                })()}
                                             </div>
                                         ))}
                                     </div>
@@ -391,12 +494,13 @@ export default function Dashboard({ session }) {
                                         {tasksWithoutDate.map((task) => (
                                             <div
                                                 key={task.id}
-                                                className="flex items-center gap-3 p-3 bg-dark-surface rounded-lg hover:bg-dark-hover transition-colors cursor-pointer border border-dark-border"
+                                                className={`relative flex items-center gap-3 p-3 bg-dark-surface rounded-lg hover:bg-dark-hover transition-colors cursor-pointer border border-dark-border ${animatingTasks.has(task.id) ? 'animate-task-complete' : ''}`}
                                                 onClick={() => openTaskModal(task)}
                                             >
-                                                <button className="flex-shrink-0">
+                                                {confettiTasks.has(task.id) && <Confetti taskId={task.id} />}
+                                                <button className="flex-shrink-0" onClick={(e) => { e.stopPropagation(); toggleTask(task); }}>
                                                     {task.is_done ? (
-                                                        <CheckCircle2 size={20} className="text-green-500" />
+                                                        <CheckCircle2 size={20} className={`text-green-500 ${animatingTasks.has(task.id) ? 'animate-checkmark-pop' : ''}`} />
                                                     ) : (
                                                         <Circle size={20} className="text-dark-subtext" />
                                                     )}
@@ -404,17 +508,16 @@ export default function Dashboard({ session }) {
                                                 <p className={`flex-1 text-sm min-w-0 break-words ${task.is_done ? 'line-through text-dark-subtext' : 'text-dark-text'}`}>
                                                     {task.title}
                                                 </p>
-                                                {task.category === 'work' ? (
-                                                    <span className="flex items-center gap-1 text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full text-xs">
-                                                        <Briefcase size={12} />
-                                                        Work
-                                                    </span>
-                                                ) : (
-                                                    <span className="flex items-center gap-1 text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full text-xs">
-                                                        <User size={12} />
-                                                        Personal
-                                                    </span>
-                                                )}
+                                                {(() => {
+                                                    const category = getCategoryInfo(task.category)
+                                                    const Icon = category.icon
+                                                    return (
+                                                        <span className={`flex items-center gap-1 ${category.color} ${category.bgColor} px-2 py-0.5 rounded-full text-xs`}>
+                                                            <Icon size={12} />
+                                                            {category.label}
+                                                        </span>
+                                                    )
+                                                })()}
                                             </div>
                                         ))}
                                     </div>
@@ -448,15 +551,16 @@ export default function Dashboard({ session }) {
                             {otherTasks.map((task) => (
                                 <div
                                     key={task.id}
-                                    className="card hover:bg-dark-hover transition-colors cursor-pointer mb-2 md:mb-0"
+                                    className={`relative card hover:bg-dark-hover transition-colors cursor-pointer mb-2 md:mb-0 ${animatingTasks.has(task.id) ? 'animate-task-complete' : ''}`}
                                     onClick={() => openTaskModal(task)}
                                 >
+                                    {confettiTasks.has(task.id) && <Confetti taskId={task.id} />}
                                     {/* Mobile Layout - Stacked */}
                                     <div className="md:hidden">
                                         <div className="flex items-start gap-3 mb-2">
                                             <button className="flex-shrink-0 mt-0.5" onClick={(e) => { e.stopPropagation(); toggleTask(task); }}>
                                                 {task.is_done ? (
-                                                    <CheckCircle2 size={20} className="text-green-500" />
+                                                    <CheckCircle2 size={20} className={`text-green-500 ${animatingTasks.has(task.id) ? 'animate-checkmark-pop' : ''}`} />
                                                 ) : (
                                                     <Circle size={20} className="text-dark-subtext" />
                                                 )}
@@ -472,17 +576,16 @@ export default function Dashboard({ session }) {
                                                         {new Date(task.due_date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
                                                     </span>
                                                 )}
-                                                {task.category === 'work' ? (
-                                                    <span className="flex items-center gap-1 text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full text-xs">
-                                                        <Briefcase size={12} />
-                                                        Work
-                                                    </span>
-                                                ) : (
-                                                    <span className="flex items-center gap-1 text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full text-xs">
-                                                        <User size={12} />
-                                                        Personal
-                                                    </span>
-                                                )}
+                                                {(() => {
+                                                    const category = getCategoryInfo(task.category)
+                                                    const Icon = category.icon
+                                                    return (
+                                                        <span className={`flex items-center gap-1 ${category.color} ${category.bgColor} px-2 py-0.5 rounded-full text-xs`}>
+                                                            <Icon size={12} />
+                                                            {category.label}
+                                                        </span>
+                                                    )
+                                                })()}
                                             </div>
                                         </div>
                                     </div>
@@ -491,7 +594,7 @@ export default function Dashboard({ session }) {
                                     <div className="hidden md:flex items-center gap-4">
                                         <button className="flex-shrink-0" onClick={(e) => { e.stopPropagation(); toggleTask(task); }}>
                                             {task.is_done ? (
-                                                <CheckCircle2 size={24} className="text-green-500" />
+                                                <CheckCircle2 size={24} className={`text-green-500 ${animatingTasks.has(task.id) ? 'animate-checkmark-pop' : ''}`} />
                                             ) : (
                                                 <Circle size={24} className="text-dark-subtext" />
                                             )}
@@ -533,20 +636,20 @@ export default function Dashboard({ session }) {
                                                     <CalendarIcon size={14} />
                                                 </button>
                                             )}
-                                            {task.category === 'work' ? (
-                                                <span className="flex items-center gap-1 text-blue-400 bg-blue-500/10 px-3 py-1 rounded-full">
-                                                    <Briefcase size={14} />
-                                                    Work
-                                                </span>
-                                            ) : (
-                                                <span className="flex items-center gap-1 text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full">
-                                                    <User size={14} />
-                                                    Personal
-                                                </span>
-                                            )}
+                                            {(() => {
+                                                const category = getCategoryInfo(task.category)
+                                                const Icon = category.icon
+                                                return (
+                                                    <span className={`flex items-center gap-1 ${category.color} ${category.bgColor} px-3 py-1 rounded-full`}>
+                                                        <Icon size={14} />
+                                                        {category.label}
+                                                    </span>
+                                                )
+                                            })()}
 
                                             <div className="relative">
                                                 <button
+                                                    data-menu-trigger
                                                     onClick={(e) => {
                                                         e.stopPropagation()
                                                         setActiveMenu(activeMenu === task.id ? null : task.id)
@@ -558,8 +661,7 @@ export default function Dashboard({ session }) {
 
                                                 {activeMenu === task.id && (
                                                     <div
-                                                        className="absolute right-0 top-full mt-1 w-48 bg-dark-surface border border-dark-border rounded-lg shadow-xl z-10 overflow-hidden"
-                                                        onClick={(e) => e.stopPropagation()}
+                                                        className="task-menu-dropdown absolute right-0 top-full mt-1 w-48 bg-dark-surface border border-dark-border rounded-lg shadow-xl z-10 overflow-hidden"
                                                     >
                                                         {task.due_date && (
                                                             <>
@@ -568,13 +670,17 @@ export default function Dashboard({ session }) {
                                                                     target="_blank"
                                                                     rel="noopener noreferrer"
                                                                     className="flex items-center gap-2 w-full px-4 py-2 text-sm text-dark-text hover:bg-dark-hover hover:text-dark-text transition-colors"
-                                                                    onClick={() => setActiveMenu(null)}
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation()
+                                                                        setActiveMenu(null)
+                                                                    }}
                                                                 >
                                                                     <ExternalLink size={14} />
                                                                     Google Agenda
                                                                 </a>
                                                                 <button
-                                                                    onClick={() => {
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation()
                                                                         downloadIcsFile(task)
                                                                         setActiveMenu(null)
                                                                     }}
@@ -588,8 +694,9 @@ export default function Dashboard({ session }) {
                                                         )}
 
                                                         <button
-                                                            onClick={() => {
-                                                                deleteTask(task.id)
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                confirmDeleteTask(task.id)
                                                                 setActiveMenu(null)
                                                             }}
                                                             className="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-500 hover:bg-red-500/10 transition-colors"
@@ -613,10 +720,24 @@ export default function Dashboard({ session }) {
                         isOpen={isModalOpen}
                         onClose={() => setIsModalOpen(false)}
                         onUpdate={handleUpdateTask}
-                        onDelete={handleDeleteTask}
+                        onDelete={rawDeleteTask}
+                    />
+
+                    <ConfirmationModal
+                        isOpen={isDeleteConfirmOpen}
+                        onClose={() => setIsDeleteConfirmOpen(false)}
+                        onConfirm={executeDeleteTask}
+                        title="Supprimer la tâche ?"
+                        message="Cette action est irréversible. Êtes-vous sûr de vouloir continuer ?"
                     />
                 </div>
             </div>
+
+            {/* Celebration Modal */}
+            <CelebrationModal
+                isOpen={showCelebration}
+                onClose={() => setShowCelebration(false)}
+            />
         </div>
     )
 }
