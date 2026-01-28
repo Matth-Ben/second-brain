@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { supabase } from '../supabaseClient'
 import { Plus, CheckCircle2, Circle, Briefcase, User, Calendar as CalendarIcon, MoreVertical, Trash2, ExternalLink, Download, Home, Heart, GraduationCap, DollarSign, PartyPopper, Lightbulb, ChevronRight, ChevronDown, Archive } from 'lucide-react'
 import { generateGoogleCalendarUrl, downloadIcsFile } from '../utils/calendar'
@@ -36,6 +36,18 @@ export default function Dashboard({ session }) {
     const [activeMenu, setActiveMenu] = useState(null)
     const [selectedTask, setSelectedTask] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [showCompleted, setShowCompleted] = useState(false)
+
+    // New state variables for animations and confirmations
+    const [celebrationShown, setCelebrationShown] = useState(false)
+    const [showCelebration, setShowCelebration] = useState(false)
+    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
+    const [taskToDelete, setTaskToDelete] = useState(null)
+    const [animatingTasks, setAnimatingTasks] = useState(new Set())
+    const [confettiTasks, setConfettiTasks] = useState(new Set())
+    const [closingTasks, setClosingTasks] = useState(new Set()) // Tasks that are done but animating out
+
+    const isInitialLoad = useRef(true)
 
     // Close menu when clicking outside
     useEffect(() => {
@@ -73,6 +85,8 @@ export default function Dashboard({ session }) {
 
     // Check if all daily tasks are completed
     useEffect(() => {
+        if (loading) return
+
         const today = new Date()
         const todayDate = today.toISOString().split('T')[0]
 
@@ -81,12 +95,24 @@ export default function Dashboard({ session }) {
             const taskDate = task.due_date.split('T')[0]
             return taskDate === todayDate
         })
-        const tasksWithoutDate = tasks.filter(task => !task.due_date)
-        const allDailyTasks = [...todayTasks, ...tasksWithoutDate]
 
-        // Only show celebration if there are tasks and all are done
-        if (allDailyTasks.length > 0) {
-            const allCompleted = allDailyTasks.every(task => task.is_done)
+        // Handle initial load state to prevent celebration on refresh
+        if (isInitialLoad.current) {
+            if (todayTasks.length > 0) {
+                const allCompleted = todayTasks.every(task => task.is_done)
+                if (allCompleted) {
+                    setCelebrationShown(true) // Silently mark as shown
+                }
+            }
+            if (tasks.length > 0) {
+                isInitialLoad.current = false // Only separate initial load if we actually have tasks (or empty list confirmed)
+            }
+            return
+        }
+
+        // Only show celebration if there are tasks and all are done (User requested ONLY for today's tasks)
+        if (todayTasks.length > 0) {
+            const allCompleted = todayTasks.every(task => task.is_done)
 
             // Show celebration only once when all tasks become completed
             if (allCompleted && !celebrationShown) {
@@ -103,7 +129,7 @@ export default function Dashboard({ session }) {
                 setShowCelebration(false)
             }
         }
-    }, [tasks, celebrationShown])
+    }, [tasks, celebrationShown, loading])
 
     const fetchTasks = async () => {
         try {
@@ -149,34 +175,23 @@ export default function Dashboard({ session }) {
                 .select()
 
             if (error) throw error
-            setTasks([...data, ...tasks])
+
+            setTasks([data[0], ...tasks])
             setNewTaskTitle('')
             setNewTaskDate('')
+            // Reset category to work or keep last used? resetting to default
+            setNewTaskCategory('work')
+            setAdding(false)
         } catch (error) {
             console.error('Error adding task:', error)
-        } finally {
+            alert('Erreur lors de l\'ajout de la tâche')
             setAdding(false)
         }
     }
 
-    const updateTaskDate = async (task, newDate) => {
-        try {
-            const dateToSave = newDate || null
-            const { error } = await supabase
-                .from('tasks')
-                .update({ due_date: dateToSave })
-                .eq('id', task.id)
-
-            if (error) throw error
-
-            setTasks(
-                tasks.map((t) =>
-                    t.id === task.id ? { ...t, due_date: dateToSave } : t
-                )
-            )
-        } catch (error) {
-            console.error('Error updating task date:', error)
-        }
+    const updateTaskDate = async (task, date) => {
+        const updatedTask = { ...task, due_date: date || null }
+        await handleUpdateTask(updatedTask)
     }
 
 
@@ -185,14 +200,14 @@ export default function Dashboard({ session }) {
         console.log('Current user:', session.user.id)
 
         try {
-            const { error, count } = await supabase
+            const { count, error } = await supabase
                 .from('tasks')
                 .delete({ count: 'exact' })
                 .eq('id', taskId)
 
             if (error) throw error
 
-            // If count is 0, it means the database found no rows to delete
+            // If no rows deleted (count === 0), it might not exist or RLS issue
             // This usually happens if RLS (security policy) prevents you from touching this row
             if (count === 0) {
                 alert('Impossible de supprimer : Vous n\'avez pas la permission ou la tâche n\'existe plus (Problème de politique RLS ?)')
@@ -233,6 +248,18 @@ export default function Dashboard({ session }) {
         // Add confetti only when completing a task
         if (willBeCompleted) {
             setConfettiTasks(prev => new Set(prev).add(task.id))
+
+            // Mark as closing to keep it visible during animation (for non-today lists)
+            setClosingTasks(prev => new Set(prev).add(task.id))
+
+            // Remove closing status after animation prevents it from disappearing instantly
+            setTimeout(() => {
+                setClosingTasks(prev => {
+                    const next = new Set(prev)
+                    next.delete(task.id)
+                    return next
+                })
+            }, 800) // 800ms delay to admire the animation
 
             // Remove confetti after animation
             setTimeout(() => {
@@ -327,12 +354,14 @@ export default function Dashboard({ session }) {
         return taskDate === todayDate
     })
 
-    // 2. Active Tasks (globally, for other lists)
-    const activeTasks = tasks.filter(task => !task.is_done)
+    // 2. Active Tasks (globally, for other lists). Includes tasks that are closing (animating out).
+    const activeTasks = tasks.filter(task => !task.is_done || closingTasks.has(task.id))
 
-    // 3. Completed Tasks (Archive) - Exclude today's completed tasks
+    // 3. Completed Tasks (Archive) - Exclude today's completed tasks AND closing tasks
     const completedTasks = tasks.filter(task => {
         if (!task.is_done) return false
+        if (closingTasks.has(task.id)) return false // Don't show in archive yet if it's animating
+
         // If it has a date and it matches today, exclude it (it stays in Today view)
         if (task.due_date) {
             const taskDate = task.due_date.split('T')[0]
@@ -350,6 +379,10 @@ export default function Dashboard({ session }) {
         const taskDate = task.due_date.split('T')[0]
         return taskDate !== todayDate // Exclude today's tasks
     })
+
+    // Check if all today's tasks are done
+    // Logic updated to check if todayTasks are actually done, not just relying on is_done
+    const allTodayTasksDone = todayTasks.length > 0 && todayTasks.every(t => t.is_done)
 
 
     return (
@@ -462,78 +495,81 @@ export default function Dashboard({ session }) {
                                     <h3 className="text-sm font-medium text-dark-subtext mb-2 uppercase tracking-wide">
                                         Aujourd'hui ({todayTasks.length})
                                     </h3>
-                                    <div className="space-y-2">
-                                        {todayTasks.map((task) => (
-                                            <div
-                                                key={task.id}
-                                                className="flex items-center gap-3 p-3 bg-dark-surface rounded-lg hover:bg-dark-hover transition-colors cursor-pointer border border-dark-border mb-2 md:mb-0"
-                                                onClick={() => openTaskModal(task)}
-                                            >
-                                                <button className="flex-shrink-0" onClick={(e) => { e.stopPropagation(); toggleTask(task); }}>
-                                                    {task.is_done ? (
-                                                        <CheckCircle2 size={20} className="text-green-500" />
-                                                    ) : (
-                                                        <Circle size={20} className="text-dark-subtext" />
-                                                    )}
-                                                </button>
-                                                <p className={`flex-1 text-sm min-w-0 break-words ${task.is_done ? 'line-through text-dark-subtext' : 'text-dark-text'}`}>
-                                                    {task.title}
-                                                </p>
-                                                {task.category === 'work' ? (
-                                                    <span className="flex items-center gap-1 text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full text-xs">
-                                                        <Briefcase size={12} />
-                                                        Travail
-                                                    </span>
-                                                ) : (
-                                                    <span className="flex items-center gap-1 text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full text-xs">
-                                                        <User size={12} />
-                                                        Personnel
-                                                    </span>
-                                                )}
-                                            </div>
-                                        ))}
-                                    </div>
                                 </div>
                             )}
 
-                            {tasksWithoutDate.length > 0 && (
-                                <div>
-                                    <h3 className="text-sm font-medium text-dark-subtext mb-2 uppercase tracking-wide">
-                                        Sans date définie ({tasksWithoutDate.length})
-                                    </h3>
-                                    <div className="space-y-2">
-                                        {tasksWithoutDate.map((task) => (
-                                            <div
-                                                key={task.id}
-                                                className="flex items-center gap-3 p-3 bg-dark-surface rounded-lg hover:bg-dark-hover transition-colors cursor-pointer border border-dark-border"
-                                                onClick={() => openTaskModal(task)}
-                                            >
-                                                <button className="flex-shrink-0">
-                                                    {task.is_done ? (
-                                                        <CheckCircle2 size={20} className="text-green-500" />
-                                                    ) : (
-                                                        <Circle size={20} className="text-dark-subtext" />
-                                                    )}
-                                                </button>
-                                                <p className={`flex-1 text-sm min-w-0 break-words ${task.is_done ? 'line-through text-dark-subtext' : 'text-dark-text'}`}>
-                                                    {task.title}
-                                                </p>
-                                                {task.category === 'work' ? (
-                                                    <span className="flex items-center gap-1 text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full text-xs">
-                                                        <Briefcase size={12} />
-                                                        Work
-                                                    </span>
-                                                ) : (
-                                                    <span className="flex items-center gap-1 text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full text-xs">
-                                                        <User size={12} />
-                                                        Personal
-                                                    </span>
-                                                )}
-                                            </div>
-                                        ))}
+                            <div className="space-y-2">
+                                {todayTasks.map((task) => (
+                                    <div
+                                        key={task.id}
+                                        className={`relative flex items-center gap-3 p-3 bg-dark-surface rounded-lg hover:bg-dark-hover transition-colors cursor-pointer border border-dark-border mb-2 md:mb-0 ${animatingTasks.has(task.id) ? 'animate-task-complete' : ''}`}
+                                        onClick={() => openTaskModal(task)}
+                                    >
+                                        {confettiTasks.has(task.id) && <Confetti taskId={task.id} />}
+                                        <button className="flex-shrink-0" onClick={(e) => { e.stopPropagation(); toggleTask(task); }}>
+                                            {task.is_done ? (
+                                                <CheckCircle2 size={20} className={`text-green-500 ${animatingTasks.has(task.id) ? 'animate-checkmark-pop' : ''}`} />
+                                            ) : (
+                                                <Circle size={20} className="text-dark-subtext" />
+                                            )}
+                                        </button>
+                                        <p className={`flex-1 text-sm min-w-0 break-words ${task.is_done ? 'line-through text-dark-subtext' : 'text-dark-text'}`}>
+                                            {task.title}
+                                        </p>
+                                        {(() => {
+                                            const category = getCategoryInfo(task.category)
+                                            const Icon = category.icon
+                                            return (
+                                                <span className={`flex items-center gap-1 ${category.color} ${category.bgColor} px-2 py-0.5 rounded-full text-xs`}>
+                                                    <Icon size={12} />
+                                                    {category.label}
+                                                </span>
+                                            )
+                                        })()}
                                     </div>
-                                </div>
-                            )}
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* No Date Tasks Section - SEPARATED */}
+                    {tasksWithoutDate.length > 0 && (
+                        <div className="card mb-6 md:mb-6 overflow-hidden">
+                            <h2 className="text-xl font-semibold mb-4 text-dark-text flex items-center gap-2">
+                                <Lightbulb size={20} className="text-yellow-400" />
+                                À planifier ({tasksWithoutDate.length})
+                            </h2>
+                            <div className="space-y-2">
+                                {tasksWithoutDate.map((task) => (
+                                    <div
+                                        key={task.id}
+                                        className={`relative flex items-center gap-3 p-3 bg-dark-surface rounded-lg hover:bg-dark-hover transition-colors cursor-pointer border border-dark-border ${animatingTasks.has(task.id) ? 'animate-task-complete' : ''} ${closingTasks.has(task.id) ? 'animate-slide-out-right' : ''}`}
+                                        onClick={() => openTaskModal(task)}
+                                    >
+                                        {confettiTasks.has(task.id) && <Confetti taskId={task.id} />}
+                                        <button className="flex-shrink-0" onClick={(e) => { e.stopPropagation(); toggleTask(task); }}>
+                                            {task.is_done ? (
+                                                <CheckCircle2 size={20} className={`text-green-500 ${animatingTasks.has(task.id) ? 'animate-checkmark-pop' : ''}`} />
+                                            ) : (
+                                                <Circle size={20} className="text-dark-subtext" />
+                                            )}
+                                        </button>
+                                        <p className={`flex-1 text-sm min-w-0 break-words ${task.is_done ? 'line-through text-dark-subtext' : 'text-dark-text'}`}>
+                                            {task.title}
+                                        </p>
+                                        {(() => {
+                                            const category = getCategoryInfo(task.category)
+                                            const Icon = category.icon
+                                            return (
+                                                <span className={`flex items-center gap-1 ${category.color} ${category.bgColor} px-2 py-0.5 rounded-full text-xs`}>
+                                                    <Icon size={12} />
+                                                    {category.label}
+                                                </span>
+                                            )
+                                        })()}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     )}
 
@@ -552,7 +588,7 @@ export default function Dashboard({ session }) {
                             {otherTasks.map((task) => (
                                 <div
                                     key={task.id}
-                                    className={`relative card hover:bg-dark-hover transition-colors cursor-pointer mb-2 md:mb-0 ${animatingTasks.has(task.id) ? 'animate-task-complete' : ''}`}
+                                    className={`relative card hover:bg-dark-hover transition-colors cursor-pointer mb-2 md:mb-0 ${animatingTasks.has(task.id) ? 'animate-task-complete' : ''} ${closingTasks.has(task.id) ? 'animate-slide-out-right' : ''}`}
                                     onClick={() => openTaskModal(task)}
                                 >
                                     {confettiTasks.has(task.id) && <Confetti taskId={task.id} />}
@@ -755,7 +791,7 @@ export default function Dashboard({ session }) {
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    deleteTask(task.id);
+                                                    confirmDeleteTask(task.id);
                                                 }}
                                                 className="p-1 hover:bg-red-500/10 text-dark-subtext hover:text-red-500 rounded transition-colors opacity-0 group-hover:opacity-100"
                                             >
