@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../supabaseClient'
-import { Plus, CheckCircle2, Circle, Briefcase, User, Calendar as CalendarIcon, MoreVertical, Trash2, ExternalLink, Download, Home, Heart, GraduationCap, DollarSign, PartyPopper, Lightbulb } from 'lucide-react'
+import { Plus, CheckCircle2, Circle, Briefcase, User, Calendar as CalendarIcon, MoreVertical, Trash2, ExternalLink, Download, Home, Heart, GraduationCap, DollarSign, PartyPopper, Lightbulb, ChevronRight, ChevronDown, Archive } from 'lucide-react'
 import { generateGoogleCalendarUrl, downloadIcsFile } from '../utils/calendar'
 import { useIsMobile } from '../utils/platform'
 import TaskModal from '../components/TaskModal'
@@ -27,6 +27,7 @@ export default function Dashboard({ session }) {
     const [activeMenu, setActiveMenu] = useState(null)
     const [selectedTask, setSelectedTask] = useState(null)
     const [isModalOpen, setIsModalOpen] = useState(false)
+    const [showCompleted, setShowCompleted] = useState(false)
 
     // Close menu when clicking outside
     useEffect(() => {
@@ -223,21 +224,41 @@ export default function Dashboard({ session }) {
         return today.toISOString().split('T')[0]
     }
 
-    // Filter tasks for today and tasks without dates
     const todayDate = getTodayDate()
+
+    // 1. Tasks for Today (Active AND Completed)
     const todayTasks = tasks.filter(task => {
         if (!task.due_date) return false
         const taskDate = task.due_date.split('T')[0]
         return taskDate === todayDate
     })
-    const tasksWithoutDate = tasks.filter(task => !task.due_date)
 
-    // Filter remaining tasks (exclude today's tasks and tasks without dates)
-    const otherTasks = tasks.filter(task => {
+    // 2. Active Tasks (globally, for other lists)
+    const activeTasks = tasks.filter(task => !task.is_done)
+
+    // 3. Completed Tasks (Archive) - Exclude today's completed tasks
+    const completedTasks = tasks.filter(task => {
+        if (!task.is_done) return false
+        // If it has a date and it matches today, exclude it (it stays in Today view)
+        if (task.due_date) {
+            const taskDate = task.due_date.split('T')[0]
+            if (taskDate === todayDate) return false
+        }
+        return true
+    })
+
+    // 4. Tasks without date (Active only)
+    const tasksWithoutDate = activeTasks.filter(task => !task.due_date)
+
+    // 5. Other tasks (Active only, not today, with date)
+    const otherTasks = activeTasks.filter(task => {
         if (!task.due_date) return false // Exclude tasks without date
         const taskDate = task.due_date.split('T')[0]
         return taskDate !== todayDate // Exclude today's tasks
     })
+
+    // Check if all today's tasks are done
+    const allTodayTasksDone = todayTasks.length > 0 && todayTasks.every(t => t.is_done)
 
 
     return (
@@ -336,104 +357,105 @@ export default function Dashboard({ session }) {
                     </div>
 
                     {/* Daily Tasks Section */}
-                    {(todayTasks.length > 0 || tasksWithoutDate.length > 0) && (
+                    {todayTasks.length > 0 && (
                         <div className="card mb-6 md:mb-6 overflow-hidden">
-                            <h2 className="text-xl font-semibold mb-4 text-dark-text flex items-center gap-2">
-                                <CalendarIcon size={20} className="text-blue-400" />
-                                Tâches du jour
-                            </h2>
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-xl font-semibold text-dark-text flex items-center gap-2">
+                                    <CalendarIcon size={20} className="text-blue-400" />
+                                    Tâches du jour ({todayTasks.length})
+                                </h2>
+                            </div>
 
-                            {todayTasks.length > 0 && (
-                                <div className="mb-4">
-                                    <h3 className="text-sm font-medium text-dark-subtext mb-2 uppercase tracking-wide">
-                                        Aujourd'hui ({todayTasks.length})
-                                    </h3>
-                                    <div className="space-y-2">
-                                        {todayTasks.map((task) => (
-                                            <div
-                                                key={task.id}
-                                                className="flex items-center gap-3 p-3 bg-dark-surface rounded-lg hover:bg-dark-hover transition-colors cursor-pointer border border-dark-border mb-2 md:mb-0"
-                                                onClick={() => openTaskModal(task)}
-                                            >
-                                                <button className="flex-shrink-0" onClick={(e) => { e.stopPropagation(); toggleTask(task); }}>
-                                                    {task.is_done ? (
-                                                        <CheckCircle2 size={20} className="text-green-500" />
-                                                    ) : (
-                                                        <Circle size={20} className="text-dark-subtext" />
-                                                    )}
-                                                </button>
-                                                <p className={`flex-1 text-sm min-w-0 break-words ${task.is_done ? 'line-through text-dark-subtext' : 'text-dark-text'}`}>
-                                                    {task.title}
-                                                </p>
-                                                {task.category === 'work' ? (
-                                                    <span className="flex items-center gap-1 text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full text-xs">
-                                                        <Briefcase size={12} />
-                                                        Travail
-                                                    </span>
-                                                ) : (
-                                                    <span className="flex items-center gap-1 text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full text-xs">
-                                                        <User size={12} />
-                                                        Personnel
-                                                    </span>
-                                                )}
-                                            </div>
-                                        ))}
+                            {/* All Done Message */}
+                            {allTodayTasksDone && (
+                                <div className="mb-4 p-4 bg-green-500/10 border border-green-500/20 rounded-lg flex items-center gap-3 animate-fadeIn">
+                                    <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                                        <PartyPopper size={16} className="text-green-500" />
+                                    </div>
+                                    <div>
+                                        <p className="font-medium text-green-400 text-sm">Bravo !</p>
+                                        <p className="text-xs text-green-500/80">Toutes les tâches du jour sont terminées.</p>
                                     </div>
                                 </div>
                             )}
 
-                            {tasksWithoutDate.length > 0 && (
-                                <div>
-                                    <h3 className="text-sm font-medium text-dark-subtext mb-2 uppercase tracking-wide">
-                                        Sans date définie ({tasksWithoutDate.length})
-                                    </h3>
-                                    <div className="space-y-2">
-                                        {tasksWithoutDate.map((task) => (
-                                            <div
-                                                key={task.id}
-                                                className="flex items-center gap-3 p-3 bg-dark-surface rounded-lg hover:bg-dark-hover transition-colors cursor-pointer border border-dark-border"
-                                                onClick={() => openTaskModal(task)}
-                                            >
-                                                <button className="flex-shrink-0">
-                                                    {task.is_done ? (
-                                                        <CheckCircle2 size={20} className="text-green-500" />
-                                                    ) : (
-                                                        <Circle size={20} className="text-dark-subtext" />
-                                                    )}
-                                                </button>
-                                                <p className={`flex-1 text-sm min-w-0 break-words ${task.is_done ? 'line-through text-dark-subtext' : 'text-dark-text'}`}>
-                                                    {task.title}
-                                                </p>
-                                                {task.category === 'work' ? (
-                                                    <span className="flex items-center gap-1 text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full text-xs">
-                                                        <Briefcase size={12} />
-                                                        Work
-                                                    </span>
-                                                ) : (
-                                                    <span className="flex items-center gap-1 text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full text-xs">
-                                                        <User size={12} />
-                                                        Personal
-                                                    </span>
-                                                )}
-                                            </div>
-                                        ))}
+                            <div className="space-y-2">
+                                {todayTasks.map((task) => (
+                                    <div
+                                        key={task.id}
+                                        className="flex items-center gap-3 p-3 bg-dark-surface rounded-lg hover:bg-dark-hover transition-colors cursor-pointer border border-dark-border mb-2 md:mb-0"
+                                        onClick={() => openTaskModal(task)}
+                                    >
+                                        <button className="flex-shrink-0" onClick={(e) => { e.stopPropagation(); toggleTask(task); }}>
+                                            {task.is_done ? (
+                                                <CheckCircle2 size={20} className="text-green-500" />
+                                            ) : (
+                                                <Circle size={20} className="text-dark-subtext" />
+                                            )}
+                                        </button>
+                                        <p className={`flex-1 text-sm min-w-0 break-words ${task.is_done ? 'line-through text-dark-subtext' : 'text-dark-text'}`}>
+                                            {task.title}
+                                        </p>
+                                        {task.category === 'work' ? (
+                                            <span className="flex items-center gap-1 text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full text-xs">
+                                                <Briefcase size={12} />
+                                                Travail
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center gap-1 text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full text-xs">
+                                                <User size={12} />
+                                                Personnel
+                                            </span>
+                                        )}
                                     </div>
-                                </div>
-                            )}
+                                ))}
+                            </div>
                         </div>
                     )}
 
-                    {otherTasks.length === 0 && tasks.length > 0 ? (
-                        <div className="card text-center py-12">
-                            <div className="text-dark-subtext mb-2">
-                                <CheckCircle2 size={48} className="mx-auto mb-4 opacity-50" />
+                    {/* No Date Tasks Section */}
+                    {tasksWithoutDate.length > 0 && (
+                        <div className="card mb-6 md:mb-6 overflow-hidden">
+                            <h2 className="text-xl font-semibold mb-4 text-dark-text flex items-center gap-2">
+                                <Lightbulb size={20} className="text-yellow-400" />
+                                À planifier ({tasksWithoutDate.length})
+                            </h2>
+
+                            <div className="space-y-2">
+                                {tasksWithoutDate.map((task) => (
+                                    <div
+                                        key={task.id}
+                                        className="flex items-center gap-3 p-3 bg-dark-surface rounded-lg hover:bg-dark-hover transition-colors cursor-pointer border border-dark-border"
+                                        onClick={() => openTaskModal(task)}
+                                    >
+                                        <button className="flex-shrink-0">
+                                            {task.is_done ? (
+                                                <CheckCircle2 size={20} className="text-green-500" />
+                                            ) : (
+                                                <Circle size={20} className="text-dark-subtext" />
+                                            )}
+                                        </button>
+                                        <p className={`flex-1 text-sm min-w-0 break-words ${task.is_done ? 'line-through text-dark-subtext' : 'text-dark-text'}`}>
+                                            {task.title}
+                                        </p>
+                                        {task.category === 'work' ? (
+                                            <span className="flex items-center gap-1 text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full text-xs">
+                                                <Briefcase size={12} />
+                                                Work
+                                            </span>
+                                        ) : (
+                                            <span className="flex items-center gap-1 text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full text-xs">
+                                                <User size={12} />
+                                                Personal
+                                            </span>
+                                        )}
+                                    </div>
+                                ))}
                             </div>
-                            <h3 className="text-xl font-semibold mb-2 text-dark-text">Toutes vos tâches sont dans la liste du jour !</h3>
-                            <p className="text-dark-subtext">
-                                Consultez la section "Tâches du jour" ci-dessus
-                            </p>
                         </div>
-                    ) : otherTasks.length === 0 ? (
+                    )}
+
+                    {otherTasks.length === 0 && activeTasks.length === 0 ? (
                         <div className="card text-center py-12">
                             <div className="text-dark-subtext mb-2">
                                 <Circle size={48} className="mx-auto mb-4 opacity-50" />
@@ -604,6 +626,59 @@ export default function Dashboard({ session }) {
                                     </div>
                                 </div>
                             ))}
+                        </div>
+                    )}
+
+                    {/* Completed Tasks Archive */}
+                    {completedTasks.length > 0 && (
+                        <div className="mt-8 border-t border-dark-border pt-6">
+                            <button
+                                onClick={() => setShowCompleted(!showCompleted)}
+                                className="flex items-center gap-2 text-dark-subtext hover:text-dark-text transition-colors w-full group"
+                            >
+                                {showCompleted ? <ChevronDown size={20} /> : <ChevronRight size={20} />}
+                                <span className="font-medium">Tâches terminées ({completedTasks.length})</span>
+                                <div className="h-px bg-dark-border flex-1 ml-2 group-hover:bg-dark-subtext transition-colors"></div>
+                            </button>
+
+                            {showCompleted && (
+                                <div className="space-y-2 mt-4 animate-fadeIn">
+                                    {completedTasks.map((task) => (
+                                        <div
+                                            key={task.id}
+                                            className="flex items-center gap-3 p-3 bg-dark-surface/50 rounded-lg hover:bg-dark-surface transition-colors cursor-pointer border border-dark-border/50"
+                                            onClick={() => openTaskModal(task)}
+                                        >
+                                            <button className="flex-shrink-0" onClick={(e) => { e.stopPropagation(); toggleTask(task); }}>
+                                                <CheckCircle2 size={20} className="text-green-500/70 hover:text-green-500 transition-colors" />
+                                            </button>
+                                            <p className="flex-1 text-sm min-w-0 break-words line-through text-dark-subtext">
+                                                {task.title}
+                                            </p>
+                                            {task.category === 'work' ? (
+                                                <span className="flex items-center gap-1 text-blue-400/70 bg-blue-500/5 px-2 py-0.5 rounded-full text-xs grayscale-[0.3]">
+                                                    <Briefcase size={12} />
+                                                    Travail
+                                                </span>
+                                            ) : (
+                                                <span className="flex items-center gap-1 text-purple-400/70 bg-purple-500/5 px-2 py-0.5 rounded-full text-xs grayscale-[0.3]">
+                                                    <User size={12} />
+                                                    Personnel
+                                                </span>
+                                            )}
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    deleteTask(task.id);
+                                                }}
+                                                className="p-1 hover:bg-red-500/10 text-dark-subtext hover:text-red-500 rounded transition-colors opacity-0 group-hover:opacity-100"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                         </div>
                     )}
 
